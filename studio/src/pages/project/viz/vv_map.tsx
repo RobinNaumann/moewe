@@ -29,10 +29,7 @@ function _MapViz({ events }: { events: ApiEvent[] }) {
 
   const getStyle = ({
     countryValue,
-    countryCode,
-    minValue,
     maxValue,
-    color,
   }: CountryContext) => {
     const colorScale = chroma
       .scale(["#00000022", appInfo.style.accentColor])
@@ -61,16 +58,19 @@ function _MapViz({ events }: { events: ApiEvent[] }) {
 
   return (
     <div class="column cross-center">
+     
+     <div style="margin: -40px 0">
       <WorldMap
         data={countryData}
         color={appInfo.style.accentColor}
         backgroundColor="transparent"
         valuePrefix=":"
         valueSuffix=" events"
-        size="responsive"
+        size={500}
         styleFunction={getStyle}
         onClickFunction={clickAction}
       />
+      </div>
 
       <_CityList
         country={countrySig.value}

@@ -1,6 +1,6 @@
 import { ApiEvent } from "../bit/b_events";
 import { ProjectMember, ReadProjectMember } from "../bit/b_members";
-import { ViewFilter } from "../util/viz/v_viz";
+import { ViewFilter, VizViewEntry } from "../util/viz/v_viz";
 import { ApiService } from "./s_api";
 
 export type eventType = "event" | "log" | "route" | "failure";

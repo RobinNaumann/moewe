@@ -43,7 +43,7 @@ export const routesEvent: ApiDefinition[] = [
       guard(user, admin);
       const filters = [];
       if (dateFrom) filters.push({query: "created_at > $date_from",values: {$date_from: dateFrom}});
-      if (dateFrom) filters.push({query: "created_at <= $date_to",values: {$date_to: dateFrom}});
+      if (dateEnd) filters.push({query: "created_at <= $date_to",values: {$date_to: dateEnd}});
 
       return DataService.i.listEvent(project, type, 1, 1000, filters);
     },

@@ -121,7 +121,7 @@ export class DataService {
 
   listEvent(projectId:string, type:string | null, page: number, pageSize: number, params: {query: string, values:{[key: string]: any}}[] = []) {
     const filter: DbFilter = {
-      where: `project = $project ${type ? "AND type = $type" : ""} ${params.map(p => `AND ${p.query} = $${p.query}`).join(" ")}`,
+      where: `project = $project ${type ? "AND type = $type" : ""} ${params.map(p => `AND ${p.query}`).join(" ")}`,
       params: {
         $project: projectId,
         $type: type,

@@ -11,6 +11,7 @@ import { useSignal } from "@preact/signals";
 import { ElbeDialog } from "../../elbe/components";
 import { ViewBit } from "../../bit/b_view";
 import { ApiEvent, EventsBit } from "../../bit/b_events";
+import { useLayoutEffect, useState } from "preact/compat";
 
 export interface VizViewEntry {
   id: string;
@@ -20,11 +21,12 @@ export interface VizViewEntry {
 export type ViewFilter = {
   date_from: number;
   //date_to: number;
-  [key: string]: any };
+  [key: string]: any;
+};
 
 export interface ViewConfig {
   filter: ViewFilter;
-  _key?: number | null,
+  _key?: number | null;
   views: {
     [key: string]: {
       vizs: VizViewEntry[];
@@ -50,52 +52,110 @@ export interface Visualization<Options> {
   icon: any;
   options: VizOption[];
   defaults: Options;
-  builder: (data: VizData<ApiEvent>, options: Options, setOption: (key: string, value: any) => any) => any;
+  builder: (
+    data: VizData<ApiEvent>,
+    options: Options,
+    setOption: (key: string, value: any) => any
+  ) => any;
 }
 
-function _resolveViz<T extends ApiEvent>(viz: VizViewEntry): Visualization<any> {
+function _resolveViz<T extends ApiEvent>(
+  viz: VizViewEntry
+): Visualization<any> {
   return vizs.find((v) => v.id.toLowerCase() === viz.id.toLowerCase());
 }
 
-export function VisView({ view }: { view: string; }) {
-  const eventsBit = EventsBit.use();
+function _toColumns(vizs: VizViewEntry[], ): {viz: VizViewEntry, index: {i: number, max:number}}[][] {
+  const [[columns, id], _set] = useState([[[]],vizs.toString()]);
+  useLayoutEffect(() => {
+    function update() {
+      
+      let currentWidth = self.innerWidth;
+      let colCount = Math.floor(currentWidth / 600);
+      const maxI = vizs.length ?? 0;
+
+      const columns: {
+        viz: VizViewEntry;
+        index: { i: number; max: number };
+      }[][] = [];
+      for (let i = 0; i < colCount; i++) columns.push([]);
+      for (let i = 0; i < vizs.length; i++) {
+        columns[i % colCount].push({
+          viz: vizs[i],
+          index: { i, max: maxI },
+        });
+      }
+      _set([columns, vizs.toString()]);
+    }
+    window.addEventListener('resize', update);
+    update();
+    return () => window.removeEventListener('resize', update);
+  }, [Date.now()]);
+  return columns;
+}
+
+export function VisView({ view }: { view: string }) {
   const viewBit = ViewBit.use();
+
   return viewBit.map({
     onData: (d) => {
       const viewConf = d.views[view] ?? { filter: null, vizs: [] };
+      let columns = _toColumns([...viewConf.vizs]);
+      
 
       return (
-        <div class="grid">
-          {viewConf.vizs.map((viz, i) => {
-            const rViz = _resolveViz(viz);
-            return (
-              <_VizView
-                view={view}
-                index={{ i: i, max: viewConf.vizs.length ?? 0 }}
-                viz={rViz}
-                builder={() =>
-                  eventsBit.map({
-                    onData: (evData) => {
-                      const data = {
-                        entries: evData.events,
-                        filter: d.filter,
-                      };
-                      return _resolveViz(viz)?.builder(
-                        data,
-                        { ...rViz.defaults, ...(viz.options ?? {}) },
-                        (k,v) => viewBit.ctrl.setOption(view, rViz.id,k,v)
-                      );
-                    },
-                  })
-                }
-              />
-            );
-          })}
+        <div class="column cross-stretch">
+          <div class="row cross-start">
+            {columns.map((c, i) => (
+              <div class="column cross-stretch" style="flex: 1; width: 10rem">
+                {c.map((e) => (
+                  <_Viz view={view} index={e.index} viz={e.viz} />
+                ))}
+              </div>
+            ))}
+          </div>
           <AddVizBtn view={view} />
         </div>
       );
     },
   });
+}
+
+function _Viz({
+  view,
+  index,
+  viz,
+}: {
+  view: string;
+  index: { i: number; max: number };
+  viz: VizViewEntry;
+}) {
+  const eventsBit = EventsBit.use();
+  const viewBit = ViewBit.use();
+
+  const rViz = _resolveViz(viz);
+  return viewBit.onData((d) => (
+    <_VizView
+      view={view}
+      index={index}
+      viz={rViz}
+      builder={() =>
+        eventsBit.map({
+          onData: (evData) => {
+            const data = {
+              entries: evData.events,
+              filter: d.filter,
+            };
+            return _resolveViz(viz)?.builder(
+              data,
+              { ...rViz.defaults, ...(viz.options ?? {}) },
+              (k, v) => viewBit.ctrl.setOption(view, rViz.id, k, v)
+            );
+          },
+        })
+      }
+    />
+  ));
 }
 
 function _VizView<O>({
@@ -200,9 +260,11 @@ function AddVizBtn({ view }: { view: string }) {
   return viewBit.map({
     onData: (d) => {
       const vs = d.views[view]?.vizs ?? [];
-      const avail = vizs.filter((v) => v.types === "all" || v.types.includes(view as any)).filter(
-        (v) => !vs.find((vv) => vv.id.toLowerCase() === v.id.toLowerCase())
-      );
+      const avail = vizs
+        .filter((v) => v.types === "all" || v.types.includes(view as any))
+        .filter(
+          (v) => !vs.find((vv) => vv.id.toLowerCase() === v.id.toLowerCase())
+        );
       return (
         <button
           class="card centered button action"
@@ -278,7 +340,6 @@ function OptionView({
       const vs = d.views[view]?.vizs ?? [];
       const vis = vs.find((v) => v.id.toLowerCase() === viz.id.toLowerCase());
       const v = { ...viz.defaults, ...vis?.options }[option.key] ?? null;
-      console.log("OptionView", v);
       return (
         <div class="row main-space-between">
           <div class="column cross-stretch-fill">

@@ -116,6 +116,7 @@ function _Viz({
         )}
       </div>}
       <div class="column cross-stretch-fill gap-quarter">
+        {filtered().length == 0 && <div>no logs found</div>}
         {filtered().map((v) => _LogEntry({setOption, options, event: v }))}
       </div>
     </div>

@@ -98,7 +98,7 @@ const definition = {
     },
   },
   servers: [
-    { url: `http://${appInfo.server.host}:${appInfo.server.port}/api` },
+    { url: `http://${appInfo.docu.host}:${appInfo.server.port}/api` },
   ],
 };
 

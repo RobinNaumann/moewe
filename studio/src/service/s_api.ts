@@ -12,7 +12,8 @@ export class ApiService{
     public static i: ApiService = new ApiService();
     private constructor() {};
 
-    private _apiURL =  `${location.protocol}//${location.port === "5173" ? "localhost:3183" : location.host}/api`;
+    private _apiURL = "https://moewe.robbb.in/api";
+    //`${location.protocol}//${location.port === "5173" ? "localhost:3183" : location.host}/api`;
 
     private async _fetch(p:string,method: "GET" | "POST" | "DELETE",{path, query, body}: PostArgs ): Promise<any>{
         try {

@@ -10,6 +10,8 @@ bun run build
 cd ../moewe_server
 bun install
 
+cd ..
+
 # Docker: create Image and push
 docker build -t "$name" .
 docker push "$name"

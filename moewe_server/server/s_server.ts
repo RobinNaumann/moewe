@@ -17,8 +17,9 @@ export function runServer(api: (express: express.Express) => void, studioPath: s
 
     app.use("/", express.static(studioPath));
     api(app);
+
     try{
-    app.listen(appInfo.server.port);
+        app.listen(appInfo.server.port);
     }
     catch(err){
       return logger.fatal("SERVER: " + err);

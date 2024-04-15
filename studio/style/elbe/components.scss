@@ -397,17 +397,14 @@ dialog {
 }
 
 .tooltipped {
-  position: relative;
+  //position: relative;
   //display: inline-block;
 
   .tooltip {
     @extend .card;
     @extend .primary;
-    position: absolute;
+    position: fixed;
     width: max-content;
-    bottom: 110%;
-    left: 50%;
-    transform: translateX(-50%);
     visibility: hidden;
     opacity: 0;
     z-index: 10;
@@ -521,3 +518,11 @@ input[type="date"] {
   min-width: 10rem;
 }
 
+
+.code{
+  @extend .card;
+  @extend .secondary;
+  padding: 0.4rem 0.5rem;
+  font-family: monospace;
+  white-space: pre-wrap;
+}

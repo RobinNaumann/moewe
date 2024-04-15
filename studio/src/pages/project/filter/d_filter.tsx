@@ -24,7 +24,7 @@ export type VizFilter = RemoteFilter | LocalFilter;
 export type VizFilters = {[key:string]: VizFilter};
 
 export const vizFilters: VizFilters = {
-    time_from: {
+    date_from: {
         label: "from",
         type: "date",
         local: false,
@@ -34,7 +34,7 @@ export const vizFilters: VizFilters = {
         }
     },
    
-    time_to: {
+    date_to: {
         label: "to",
         type: "date",
         local: false,

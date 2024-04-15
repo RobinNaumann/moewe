@@ -11,14 +11,13 @@ const oneDay = 24 * 60 * 60 * 1000;
 const defaultOptions =  {};
 
 interface _ChartValue{
-  labels: _ChartColumn[];
-  values: ApiEvent[][];
+  label: _ChartColumn;
+  values: ApiEvent[];
 }
 
 interface _ChartColumn{
   label: string;
   short: string;
-
 }
 
 export const chartTimeViz: Visualization<typeof defaultOptions> = {
@@ -54,7 +53,7 @@ function _Viz({ options, _data }: { options: typeof defaultOptions, _data: VizDa
   return (
     <div class="column gap-double cross-stretch gap">
       <_ActionButtons modeSig={modeSig} />
-      <_TimeChart data={data} />
+      <_ChartBodyView values={data} />
     </div>
   );
 }
@@ -71,76 +70,65 @@ function _ActionButtons({modeSig}: {modeSig: Signal<number>}) {
 </div>;
 }
 
- function _DayTransformer(filter: ViewFilter, data: ApiEvent[]): {labels: _ChartColumn[],values: ApiEvent[][]} {
-  if(data.length === 0) return {labels: [], values: []};
-  const first:number = filter?.["time_from"] ?? new Date(data[0].meta.created_at).getTime();
-  const last = filter?.["time_to"] ?? Date.now();
+ function _DayTransformer(filter: ViewFilter, data: ApiEvent[]):_ChartValue[] {
+  const values:_ChartValue[] = [];
 
-  const days: ApiEvent[][] = [];
-  const labels = [];
-
-  for (let t = (new Date(first).setHours(0)); t <= last; t += oneDay) {
-    days.push(data.filter((ev) => {
-      const d = new Date(ev.meta.created_at);
-      return d.getTime() >= t && d.getTime() < t + oneDay;
-    }));
-    const d = new Date(t);
-    labels.push({label: d.toLocaleDateString(), short: d.toLocaleDateString().substring(0,5), key: t});
+  for(let i = filter.date_from; i < (filter.date_to ?? Date.now()); i += oneDay) {
+    const day = new Date(i);
+    const dayEnd = new Date(i + oneDay);
+    const dayEvents = data.filter((ev) => {
+      const evDate = new Date(ev.meta.created_at);
+      return evDate >= day && evDate < dayEnd;
+    });
+    values.push({label: {label: day.toDateString(), short: day.toLocaleDateString()}, values: dayEvents});
   }
 
-  return {labels: labels, values: days};
+  return values;
  }
 
- function _WeekTransformer(_,data: ApiEvent[]): {labels: _ChartColumn[],values: ApiEvent[][]} {
-  const vals = data.reduce((acc, ev) => {
-    const week = new Date(ev.meta.created_at).getDay();
-    for (let i = 0; i <= week; i++) if (!acc[i]) acc[i] = [];
-    acc[week].push(ev);
-    return acc;
-  },[]);
-  return {labels: _dWeekdays, values: vals};
-}
 
- function _HourTransformer(_, data: ApiEvent[]): {labels: _ChartColumn[],values: ApiEvent[][]} {
-  const vals = data.reduce((acc, ev) => {
-    const hour = new Date(ev.meta.created_at).getHours();
-    for (let i = 0; i <= hour; i++) if (!acc[i]) acc[i] = [];
-    acc[hour].push(ev);
-    return acc;
-  },[]);
-
-  const labels = Array.from({length: 24}, (_, i) => i).map((i) => {
-    return {label: i.toString(), short: i.toString(), key: i};
+ 
+ function _WeekTransformer(_,data: ApiEvent[]): _ChartValue[] {
+  return _dWeekdays.map((d, i) => {
+    const dayEvents = data.filter((ev) => {
+      const evDate = new Date(ev.meta.created_at);
+      return evDate.getDay() === i;
+    });
+    return {label: d, values: dayEvents};
   });
-
-  return {labels: labels, values: vals};
 }
 
-function _TimeChart({ data }: { data: _ChartValue}) {
-  // group data by week
-
-  return <_ChartBodyView labels={data.labels} eventCount={data.values.map((w) => w.length)} />
-
-
+ function _HourTransformer(_, data: ApiEvent[]): _ChartValue[] {
+  return Array.from({length: 24}, (_, i) => {
+    const dayEvents = data.filter((ev) => {
+      const evDate = new Date(ev.meta.created_at);
+      return evDate.getHours() === i;
+    });
+    return {label: {label: i.toString(), short: i.toString()}, values: dayEvents};
+  });
+  
 }
 
-function _ChartBodyView({labels, eventCount}: {labels: _ChartColumn[], eventCount: number[]}) { 
-  let maxi = eventCount.reduce((acc, w) => Math.max(acc, w), 0);
+
+
+function _ChartBodyView({values}: {values: _ChartValue[]}) { 
+  let maxi = values.reduce((acc, w) => Math.max(acc, w.values.length), 0);
   return <div class="row cross-stretch gap-half main-space-between"
-  style="overflow-x: scroll; min-height: 10rem"
+  style="overflow-x: scroll; overflow-y: hidden ; min-height: 10rem; flex-direction: row-reverse; gap: 0.25rem;"
   >
     {
-      labels.map((label, i) => <_ChartColumnView label={label} value={eventCount[i]} max={maxi} />)
-    }
-  </div>
+      values.reverse().map((v, i) => <_ChartColumnView label={v.label} value={
+        v.values.length} max={maxi} />)
+    }</div>
+  
 
 }
 
 function _ChartColumnView({ label, value, max }: { label: _ChartColumn; value: number, max: number}) {
   return <div class="column main-end gap-half flex-1 tooltipped">
     <div class="accent rounded" style={`height: ${(value/max) * 10}rem; width: min(100%, 3rem)`}></div>
-    <div class="text-s b" >{label.short.toLocaleUpperCase()}</div>
-    <div class="tooltip" style="bottom: 40%">{value}</div>
+    <div class="text-s b" style="max-width: 35px; overflow-wrap: break-word; text-align: center;" >{label.short.toLocaleUpperCase()}</div>
+    <div class="tooltip">{value}</div>
   </div>
 }
 

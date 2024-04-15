@@ -17,10 +17,13 @@ export interface VizViewEntry {
   options?: any;
 }
 
-export type ViewFilter = { [key: string]: any };
+export type ViewFilter = {
+  date_from: number;
+  //date_to: number;
+  [key: string]: any };
 
 export interface ViewConfig {
-  filter?: ViewFilter;
+  filter: ViewFilter;
   _key?: number | null,
   views: {
     [key: string]: {
@@ -37,7 +40,7 @@ export interface VizOption {
 
 export interface VizData<T> {
   entries: T[];
-  filter?: ViewFilter;
+  filter: ViewFilter;
 }
 
 export interface Visualization<Options> {
@@ -75,7 +78,7 @@ export function VisView({ view }: { view: string; }) {
                     onData: (evData) => {
                       const data = {
                         entries: evData.events,
-                        filter: d.filter ?? {},
+                        filter: d.filter,
                       };
                       return _resolveViz(viz)?.builder(
                         data,

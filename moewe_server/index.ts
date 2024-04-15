@@ -13,7 +13,7 @@ if (!initApp()) process.exit(1);
 
 runServer(
   docuApi({ routes: apiRoutes, auth: AuthService.i.middleware }),
-  "../studio/dist"
+  appInfo.server.pathStudio
 );
 
 

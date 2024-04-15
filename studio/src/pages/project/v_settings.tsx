@@ -2,6 +2,8 @@ import { Eraser, RotateCcw, Trash2 } from "lucide-react";
 import { ProjectBit } from "../../bit/b_project";
 import { Field, showConfirmDialog } from "../../util";
 import { ProjectMembersView } from "./v_members";
+import { Project } from "../../service/s_data";
+import { appInfo } from "../../app";
 
 export function ProjectSettingsView({}) {
   const projectBit = ProjectBit.use();
@@ -27,6 +29,9 @@ export function ProjectSettingsView({}) {
           <h3>information</h3>
           <Field label={"name"} value={project.name} onSubmit={(v) => projectBit.ctrl.setName(v)} />
           <Field label={"about"} value={project.about} onSubmit={(v) => projectBit.ctrl.setAbout(v)} />
+          <h5>client configuration</h5>
+          <_clientInfo project={project} />
+
         </div>
         <div class="column cross-stretch">
           <h3>members</h3>
@@ -64,4 +69,25 @@ export function ProjectSettingsView({}) {
       </div>
     );
   });
+}
+
+function _clientInfo({project}: {project: Project}) {
+  const data = [
+    {label: "host", value: location.host.split(":")[0], mono: true},
+    {label: "port", value: 80, mono: true},
+    {label: "project", value: project.id, mono: true},
+    {label: "appId", value: "set a custom id for different clients ('web', 'mobile', etc.)", mono: false},
+  ]
+  return (
+    <div class="card column cross-stretch gap-half">
+      
+        {data.map((d) => (
+          <div class="row">
+         <div style="width: 6rem">{d.label}:</div>
+
+         <div class={"flex-1 " + (d.mono ? "code" : "text")} style={d.mono ? "" : "margin: 0.3rem 0"}>{d.value}</div>
+         </div>
+        ))}
+      </div>
+  );
 }

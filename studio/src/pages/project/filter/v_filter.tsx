@@ -6,20 +6,18 @@ import { VizFilter, VizFilters, vizFilters } from "./d_filter";
 import { EventsBit } from "../../../bit/b_events";
 import { useEffect } from "preact/hooks";
 
-export function FilterView({live= true}: {live?: boolean}) {
-  
-
+export function FilterView({ live = true }: { live?: boolean }) {
   return (
-      <div class="card secondary">{
-          <div class="row main-space-between">
-                          <_FilterView filters={vizFilters}
-                          />
-                          
+    <div class="card secondary">
+      {
+        <div class="row main-space-between">
+          <_FilterView filters={vizFilters} />
 
-                          {live && <_LiveView />}
-                          
-                      </div>
-      }</div>)
+          {live && <_LiveView />}
+        </div>
+      }
+    </div>
+  );
 }
 
 function _LiveView() {
@@ -31,29 +29,32 @@ function _LiveView() {
       liveSig.value = evSig.peek().data?.requestedAt > Date.now() - 30 * 1000;
     }, 1000);
     return () => clearInterval(id);
-  }, [evSig]); 
+  }, [evSig]);
 
-  return liveSig.value ? <div class="row live-label">
-         live <div class="live-dot" />
-        </div> : <div/>
-      
+  return liveSig.value ? (
+    <div class="row live-label">
+      live <div class="live-dot" />
+    </div>
+  ) : (
+    <div />
+  );
 }
 
-function _FilterView({filters}: {filters: VizFilters}) {
+function _FilterView({ filters }: { filters: VizFilters }) {
   const openSig = useSignal(false);
   return (
     <div class="row cross-stretch">
-    <div class="row main-space-between">
-      <button class="action" onClick={() => (openSig.value = true)}>
-        <Settings2 />
-        Filter
-      </button>
-      <_FilterDialog
-        open={openSig.value}
-        onClose={() => (openSig.value = false)}
-        filters={filters}
-      />
-    </div>
+      <div class="row main-space-between">
+        <button class="action" onClick={() => (openSig.value = true)}>
+          <Settings2 />
+          Filter
+        </button>
+        <_FilterDialog
+          open={openSig.value}
+          onClose={() => (openSig.value = false)}
+          filters={filters}
+        />
+      </div>
     </div>
   );
 }
@@ -61,17 +62,19 @@ function _FilterView({filters}: {filters: VizFilters}) {
 function _FilterDialog({
   open,
   onClose,
-  filters
+  filters,
 }: {
   open: boolean;
   onClose: () => void;
-  filters: VizFilters
+  filters: VizFilters;
 }) {
   const viewBit = ViewBit.use();
   return (
     <ElbeDialog title="Filter" open={open} onClose={onClose}>
       <div class="column cross-stretch-fill" style="width: min(90vw, 25rem)">
-        {Object.keys(filters).length == 0 && <div class="padded centered">no filters available</div>}
+        {Object.keys(filters).length == 0 && (
+          <div class="padded centered">no filters available</div>
+        )}
         {viewBit.map({
           onData: (view) => {
             return Object.keys(filters).map((k) => {
@@ -97,7 +100,7 @@ function _FilterEntry({
   value,
   onChange,
 }: {
-  filter: VizFilter
+  filter: VizFilter;
   value: any;
   onChange: (v: any) => void;
 }) {
@@ -109,9 +112,14 @@ function _FilterEntry({
       <input
         type={filter.type}
         style="width: 12rem"
-        value={value ?? ""}
+        value={
+          !!value ? (filter.type == "date"
+            ? new Date(value).toISOString().slice(0, 10)
+            : value) : ""
+        }
         onInput={(e) => {
-          onChange(e.currentTarget.value);
+          const v = e.currentTarget.value;
+          onChange(filter.type === "date" ? new Date(v).getTime() : v);
         }}
       />
       {value ? (

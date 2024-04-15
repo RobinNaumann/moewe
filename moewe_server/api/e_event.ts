@@ -24,10 +24,28 @@ export const routesEvent: ApiDefinition[] = [
         description: "the type of the event",
         type: "string",
       },
+      {
+        name: "date_from",
+        in: "query",
+        required: false,
+        description: "the start of the date range (UnixMS)",
+        type: "integer",
+      },
+      {
+        name: "date_end",
+        in: "query",
+        required: false,
+        description: "the end of the date range (UnixMS)",
+        type: "integer",
+      },
     ],
-    workerAuthed: (user,project,type) => {
-      guard(user,admin);
-      return DataService.i.listEvent(project,type , 1, 100);
+    workerAuthed: (user, project, type, dateFrom, dateEnd) => {
+      guard(user, admin);
+      const filters = [];
+      if (dateFrom) filters.push({query: "created_at > $date_from",values: {$date_from: dateFrom}});
+      if (dateFrom) filters.push({query: "created_at <= $date_to",values: {$date_to: dateFrom}});
+
+      return DataService.i.listEvent(project, type, 1, 1000, filters);
     },
   },
   {
@@ -43,10 +61,9 @@ export const routesEvent: ApiDefinition[] = [
         type: "string",
       },
     ],
-    workerAuthed: (user,pId, id) => {
-      guard(user,admin,projectMember(pId));
+    workerAuthed: (user, pId, id) => {
+      guard(user, admin, projectMember(pId));
       return DataService.i.getEvent(id);
     },
   },
-  
 ];

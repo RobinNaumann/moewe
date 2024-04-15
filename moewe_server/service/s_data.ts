@@ -119,12 +119,13 @@ export class DataService {
     return parseEvent(DbService.i.get(tables.event, id));
   }
 
-  listEvent(projectId:string, type:string | null, page: number, pageSize: number) {
+  listEvent(projectId:string, type:string | null, page: number, pageSize: number, params: {query: string, values:{[key: string]: any}}[] = []) {
     const filter: DbFilter = {
-      where: `project = $project ${type ? "AND type = $type" : ""}`,
+      where: `project = $project ${type ? "AND type = $type" : ""} ${params.map(p => `AND ${p.query} = $${p.query}`).join(" ")}`,
       params: {
         $project: projectId,
-        $type: type
+        $type: type,
+        ...params.reduce((p, e) => ({...p, ...e.values}), {})
       }
     }
     return DbService.i.list(tables.event, filter, page, pageSize)

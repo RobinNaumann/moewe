@@ -34,12 +34,13 @@ class Ctrl extends StreamControl<Inputs, Data, number> {
   
   listen() {
     this._load();
-    return setInterval(() => this._load(), 5 * 1000);
+    return setInterval(() => this._load(), 30 * 1000);
   }
 
   private async _load(){
     try{
       const events = await DataService.i.listEvent(this.p.project, {type: this.p.type, ...this.p.filter});
+      console.log("got events", events.length);
       this.bit.emit({events, requestedAt: Date.now()});
     }catch(e){
       this.bit.emitError(e);

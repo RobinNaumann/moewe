@@ -7,6 +7,23 @@
 		<meta name="color-scheme" content="light dark" />
 		<title>moewe</title>
 	</head>
+	<script>
+		
+
+window.onmousemove = function (e) {
+	var tooltips = document.getElementsByClassName('tooltip');
+
+	for(let tooltip of tooltips){
+		const x = e.clientX;
+        const y = e.clientY;
+    	tooltip.style.top = (y + 13) + 'px';
+    	tooltip.style.left = (x + 13) + 'px';
+	}
+
+	
+   
+};
+	</script>
 	<body>
 		<div id="app"></div>
 		<script type="module" src="/src/index.tsx"></script>

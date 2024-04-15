@@ -12,25 +12,58 @@ const corsOptions: CorsOptions = {
   credentials: true,
 };
 
+function _isDocker(): boolean {
+  return process.env.DOCKER === "true";
+}
+
+function _env<T>(name: string,fallback: T | null, transformer: (v:string) => T | null): T {
+  const v = process.env[name];
+  if (!v) return fallback!;
+  const t = transformer(v);
+  if (t === null) return fallback!;
+  return t;
+}
+
+function _envString(name: string, fallback?: string) : string {
+  return _env(name, fallback ?? null, v => v.trim());
+}
+
+function _envBool(name: string, fallback?: boolean) : boolean {
+  return _env(name, fallback ?? null, v => {
+    if (v === "true") return true;
+    if (v === "false") return false;
+    return null;
+  });
+}
+
+function _envInt(name: string, fallback?: number) : number {
+  return _env(name, fallback ?? null, v => {
+    const i = parseInt(v);
+    if (isNaN(i)) return null;
+    return i;
+  });
+}
+
 export const appInfo = {
   name: "mœwe",
   version: "0.0.1",
   description: "Server for the moewe app",
   server: {
     cors: corsOptions,
-    host: "localhost",
-    port: process.env.SERVER_PORT ?? "3183",
+    port: _isDocker() ? 80 : _envInt("SERVER_PORT",3183),
     locationDb: "./db/dbip.mmdb",
     db: "./data/data.db",
+    pathStudio: _isDocker() ? "./studio/dist" : "../studio/dist",
   },
   auth: {
-    secret: process.env.AUTH_SECRET,
+    secret: _envString("AUTH_SECRET"),
     admin: {
-      email: process.env.AUTH_ADMIN_EMAIL,
-      password: process.env.AUTH_ADMIN_PASSWORD,
+      email: _envString("AUTH_ADMIN_EMAIL"),
+      password: _envString("AUTH_ADMIN_PASSWORD"),
     }
   },
   docu: {
+    host: _envString("SERVER_HOST", "localhost"),
     info: {
       title: "mœwe API",
       version: "1.0.0",

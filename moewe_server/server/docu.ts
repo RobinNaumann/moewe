@@ -211,7 +211,6 @@ function _makeWorker(def: ApiDefinition, auth: boolean) {
         def.handler?.(req, res) ?? _noHandler(req, res);
 
     } catch (e) {
-      logger.warning(e);
       sendError(res, e);
     }
   };

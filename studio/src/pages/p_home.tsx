@@ -12,7 +12,6 @@ export function HomePage({}) {
   const authBit = AuthBit.use();
   return (
     <div>
-      
       <HeaderView />
       {authBit.map({
         onError: (e) => <div>error: {e}</div>,
@@ -56,13 +55,16 @@ function ProjectSnippet({
   return (
     <div>
       <div
-        class="card row main-space-between pointer"
+        class="card row-resp main-space-between pointer"
         onClick={go("/project/" + project.id)}
       >
-        <div class="column cross-stretch-fill">
-          <span class="header-5">{project.name}</span>
-          <span>{project.id}</span>
-        </div>
+       
+          <div class="column cross-stretch-fill">
+            <span class="header-5">{project.name}</span>
+            <span>{project.about}</span>
+          </div>
+          <span class="text-s">{project.id}</span>
+     
       </div>
     </div>
   );

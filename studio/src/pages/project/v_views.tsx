@@ -1,9 +1,11 @@
 import {
   ActivityIcon,
+  MessageSquare,
   RouteIcon,
   ScrollIcon,
   ServerCrash,
   Settings,
+  TabletSmartphone,
   Users2,
 } from "lucide-react";
 import { EventsBit } from "../../bit/b_events";
@@ -13,6 +15,8 @@ import { VisView } from "../../util/viz/v_viz";
 import { ViewBit } from "../../bit/b_view";
 import { P } from "pino";
 import { ProjectSettingsView } from "./v_settings";
+import { ProjectAppsView } from "./v_apps";
+import { UserFeedbackView } from "./v_user_feedback";
 
 export interface ProjectView {
   type: string | null;
@@ -23,6 +27,12 @@ export interface ProjectView {
 }
 
 export const projectViews: {[key:string]: ProjectView} = {
+  appsView: {
+    type: null,
+    label: "apps",
+    icon: () => <TabletSmartphone />,
+    builder: (t) => <ProjectAppsView/>,
+  },
   eventView: {
     type: "event",
     label: "events",
@@ -47,6 +57,12 @@ export const projectViews: {[key:string]: ProjectView} = {
     label: "crashes",
     icon: () => <ServerCrash />,
     builder: (t) => <ProjectViewBuilder type={t} />,
+  },
+  feedbackView: {
+    type: null,
+    label: "feedback",
+    icon: () => <MessageSquare />,
+    builder: (t) => <UserFeedbackView  />,
   },
   settingsView: {
     type: null,

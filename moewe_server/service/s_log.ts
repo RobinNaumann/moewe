@@ -1,7 +1,8 @@
 import { appInfo } from "../app";
 import { tables } from "../server/tables";
+import { err } from "../tools/error";
 import { logger } from "../tools/log";
-import { PushEvent } from "./m_data";
+import { PushEvent } from "./model/m_event";
 import { AuthService } from "./s_auth";
 import { DbService } from "./s_db";
 import maxmind, { CityResponse, Reader } from 'maxmind';
@@ -70,17 +71,18 @@ export class LogService {
     return AuthService.i.hash(key, cache.sessionSalt);
   }
 
-  logEvent(projectId: string, event: Partial<PushEvent>, reqMeta: ReqMeta) {
+  logEvent(appId: string, event: Partial<PushEvent>, reqMeta: ReqMeta) {
     const now = Date.now();
     const location = this._getLocation(reqMeta);
     const sessionHash = this._generateSessionHash(
       now,
-      projectId,
+      appId,
       event,
       reqMeta
     );
-    return DbService.i.set(tables.event, null, {
-      project: projectId,
+
+    const eventData = {
+      app: appId,
       type: event.type,
       key: event.key,
       created_at: now,
@@ -91,6 +93,16 @@ export class LogService {
         ...location
       },
       data: event.data,
-    });
+    }
+
+    this._guardSize(eventData, appInfo.config.eventMaxSize);
+
+    return DbService.i.set(tables.event, null, eventData);
+  }
+
+  private _guardSize(d:object, maxKiloByte: number){
+    if(JSON.stringify(d).length > maxKiloByte * 500){
+      throw err.badRequest(`the event you logged is too large (max ${maxKiloByte}kb)`);
+    }
   }
 }

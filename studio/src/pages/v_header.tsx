@@ -38,6 +38,8 @@ export function Logo({ _style,onTap }: { _style?: string,onTap?: () => void}) {
   return (
     <div style={"font-weight: normal; " + (onTap ? "cursor: pointer" : "")} onClick={onTap}>
       <img
+        key="moewe_app_logo"
+        class="transed"
         src="/assets/moewe_logo.png"
         style={`height: 1rem; ${_style ?? ""}`}
       />

@@ -1,5 +1,5 @@
 import { ApiDefinition } from "../server/docu";
-import { Account, accountType, isAdmin } from "../service/m_data";
+import { Account, accountType, isAdmin } from "../service/model/m_account";
 import { DataService } from "../service/s_data";
 import { err } from "../tools/error";
 

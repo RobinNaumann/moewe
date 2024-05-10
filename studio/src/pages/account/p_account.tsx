@@ -71,14 +71,17 @@ function _View() {
             <PrivilegeChip p={d.privilege ?? 1} />
           </div>
           <Field label="Name" value={d.name} onSubmit={() => {}} />
-          <SetPasswordDialogBtn />
+          <div class="row-resp main-stretch gap">
+          <SetPasswordDialogBtn withText={true}/>
           <button
-            class="action"
+            class="error minor borderless flex-1 row"
+            style="background: transparent"
             onClick={_deleteAccount}
           >
             <Trash2 />
             delete account
           </button>
+          </div>
         </div>
         <AdminActions />
       </div>
@@ -144,7 +147,7 @@ export function SetPasswordDialogBtn({withText = false, onSet}: {withText?: bool
   }
 
   return (
-    <button class="action" onClick={() => (pwData.value = {})}>
+    <button class={"action " + (withText ? "flex-1 row" : "")} onClick={() => (pwData.value = {})}>
       <KeyRound />
       {withText ? "update password" : null}
       <ElbeDialog

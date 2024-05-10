@@ -49,6 +49,7 @@ export interface TWParams<T> {
   emitLoading: () => void;
   emitError: (e: any) => void;
   map: <D>(m: TriMap<T, D>) => D;
+  signal: Signal<BitState<T>>;
 }
 
 export function makeBit<C, T>(name: string): BitContext<C, T> {
@@ -80,13 +81,13 @@ export function ProvideBit<I, C, T>(
 
   function map<D>(m: TriMap<T, D>) {
     const st = s.value;
-    if (st.loading) return m.onLoading();
-    if (st.error) return m.onError(st.error);
+    if (st.loading) return m.onLoading?.();
+    if (st.error) return m.onError?.(st.error);
     return m.onData(st.data);
   }
 
-  const c = ctrl(parameters, { emit, emitLoading, emitError, map });
-  worker(parameters, { emit, emitLoading, emitError, map }, c);
+  const c = ctrl(parameters, { emit, emitLoading, emitError, map, signal: s });
+  worker(parameters, { emit, emitLoading, emitError, map, signal: s }, c);
 
   return (
     <context.Provider value={{ ctrl: c, state: s }}>
@@ -104,7 +105,7 @@ export function useBit<C, T>(context: PreactContext<BitData<C, T>>): BitUseInter
       if (v.loading)
         return (m.onLoading || (() => <Spinner />))() || <Spinner />;
       if (v.error)
-        return (m.onError || ((e) => <ErrorView error={e} />))(v.error);
+        return (m.onError || ((e) => <ErrorView error={e} retry={(ctrl as any).reload ?? null}/>))(v.error);
       return m.onData(v.data);
     }
 

@@ -1,8 +1,8 @@
 import { AuthService } from "../service/s_auth";
 import { ApiDefinition } from "../server/docu";
-import { Account } from "../service/m_data";
 import { DataService } from "../service/s_data";
 import { appInfo } from "../app";
+import { Account } from "../service/model/m_account";
 
 const createRoutes: ApiDefinition[] = appInfo.config.allowRegistration
   ? [

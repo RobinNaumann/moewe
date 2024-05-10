@@ -297,3 +297,15 @@ $live_o: 0.5;
     background-color: #00000020;
   }
 }
+
+.transed{
+  transition: all 0.3s;
+}
+
+.transed-width{
+  transition: width 0.3s;
+}
+
+.transed-min-height{
+  transition: min-height 0.3s;
+}

@@ -12,8 +12,8 @@ export class ApiService{
     public static i: ApiService = new ApiService();
     private constructor() {};
 
-    private _apiURL = "https://moewe.robbb.in/api";
-    //`${location.protocol}//${location.port === "5173" ? "localhost:3183" : location.host}/api`;
+    private _apiURL = //"https://moewe.robbb.in/api";
+    `${location.protocol}//${location.port === "5173" ? "localhost:3183" : location.host}/api`;
 
     private async _fetch(p:string,method: "GET" | "POST" | "DELETE",{path, query, body}: PostArgs ): Promise<any>{
         try {
@@ -22,8 +22,6 @@ export class ApiService{
                 if (v === undefined) throw {code: 400, message: `missing parameter ${p1}`};
                 return v?.toString() ?? '';
             }) : p;
-
-            console.log("fetching", p, method, path, query, body);
 
             const queryStr = query != null ? ("?" + (new URLSearchParams(query as any).toString())) : "";
             const response = await fetch(this._apiURL + p + queryStr, {

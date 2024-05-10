@@ -121,7 +121,7 @@ function _ProjectMenu({ style }: { style?: string }) {
 
   return (
     <div
-      class="column cross-stretch primary gap-half"
+      class="column cross-stretch primary gap-half transed-width"
       style={(style ?? "") + "z-index: 10; padding-bottom: 1rem"}
     >
       {Object.keys(projectViews).map((id) => {
@@ -174,7 +174,10 @@ function _MenuItem({
       style={view.builder ? "" : "opacity: 0.5"}
       onClick={view.builder ? onClick : null}
     >
-      <div style="margin-top:0.25rem">{view.icon()}</div>{" "}
+      <div style={{
+        marginTop:  "0.25rem",
+        marginLeft: iconOnly ? "0" : "0.125rem",
+      }}>{view.icon()}</div>{" "}
       {iconOnly ? null : view.label}
     </button>
   );

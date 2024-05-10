@@ -9,7 +9,7 @@
       "internalConsoleOptions": "neverOpen",
       "request": "launch",
       "name": "Server [debug]",
-      "program": "${workspaceFolder}/moewe_server/index.ts",
+      "program": "index.ts",
       "cwd": "${workspaceFolder}/moewe_server",
       "stopOnEntry": false,
       "watchMode": true

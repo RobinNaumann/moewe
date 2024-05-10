@@ -1,5 +1,5 @@
 import { ApiDefinition, ApiParameter } from "../server/docu";
-import { memberPublicType, projectType } from "../service/m_data";
+import { memberPublicType } from "../service/model/m_member";
 import { DataService } from "../service/s_data";
 import { admin, guard, projectMember } from "../tools/guard";
 

@@ -25,11 +25,18 @@ export const tables = {
   event:{
     _name: "event",
     id: "TEXT",
-    project: "TEXT",
+    app: "TEXT",
     type: "TEXT",
     key: "TEXT",
     created_at: "INTEGER",
     meta: "JSON",
     data: "JSON",
-  }
+  },
+  app:{
+    _name: "app",
+    id: "TEXT",
+    project: "TEXT",
+    name: "TEXT",
+    config: "JSON",
+  },
 };

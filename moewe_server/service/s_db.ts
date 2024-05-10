@@ -2,9 +2,15 @@ import { Database } from "bun:sqlite";
 import crypto from "crypto";
 import { err } from "../tools/error";
 import { appInfo } from "../app";
+import { logger } from "../tools/log";
+import fs from 'node:fs';
 
 export interface DbFilter {
-  where: string;
+  /**
+   * The query to execute. this overrides the where clause
+   */
+  query?: string;
+  where?: string;
   params: any;
 }
 
@@ -24,7 +30,23 @@ export class DbService {
 
   
   init() {
+    try{
+      new Database(appInfo.server.db, {create: false, readonly: true});
+    }
+    catch(e){
+      logger.warning("Database not found, creating new one");
+      this._createDb(appInfo.server.db);
+      logger.success("created new database at " + appInfo.server.db);
+    }
     this._db = new Database(appInfo.server.db);
+  }
+
+  private _createDb(path: string) {
+      const query = fs.readFileSync("./db/template/create_data.sql", "utf8");
+      let db = new Database(appInfo.server.db, {create: true, readwrite: true});
+      logger.debug("creating new database at " + appInfo.server.db);
+      db.run(query);
+      db.close();
   }
 
 
@@ -47,7 +69,7 @@ export class DbService {
   }
 
   getQuery(table: Table, filter: DbFilter): any {
-    const query = `SELECT * FROM ${table._name} WHERE ${filter.where}`;
+    const query = filter.query ?? `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`;
     return this._inflate(table, this._db.query(query).get(filter.params));
   }
 
@@ -57,7 +79,7 @@ export class DbService {
     page: number,
     pageSize: number
   ): any[] {
-    const query = `SELECT * FROM ${table._name} WHERE ${filter.where} LIMIT $limit OFFSET $offset`;
+    const query = (filter.query ?? `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`) + " LIMIT $limit OFFSET $offset";
     return this._inflateList(table, this._db
       .query(query)
       .all({
@@ -77,7 +99,7 @@ export class DbService {
   }
 
   deleteQuery(table: Table, filter: DbFilter): void {
-    const query = `DELETE FROM ${table._name} WHERE ${filter.where}`;
+    const query = filter.query ?? `DELETE FROM ${table._name} WHERE ${filter.where ?? "1=1"}`;
     this._db.query(query).run(filter.params);
   }
 
@@ -97,12 +119,12 @@ export class DbService {
 
     //remove unused entries from params:
     for(let key of Object.keys(filter?.params ?? {})){
-      if(!filter.where.includes(key)) {
+      if(!(filter.where?.includes(key) ?? true)) {
         delete filter.params[key];
       }
     }
 
-    const query = `SELECT * FROM ${table._name} WHERE ${filter.where} LIMIT $limit OFFSET $offset`;
+    const query = (filter.query ?? `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`) + " LIMIT $limit OFFSET $offset";
     return this._inflateList(table, this._db
       .query(query)
       .all({

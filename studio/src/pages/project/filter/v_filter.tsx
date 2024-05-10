@@ -20,24 +20,30 @@ export function FilterView({ live = true }: { live?: boolean }) {
   );
 }
 
+.0
+
 function _LiveView() {
-  const liveSig = useSignal(false);
-  const evSig = EventsBit.use().signal;
+  const liveSig = useSignal<boolean | null>(false);
+  const evSig = EventsBit.use();
 
   useEffect(() => {
     const id = setInterval(() => {
-      liveSig.value = evSig.peek().data?.requestedAt > Date.now() - 30 * 1000;
+      const d = evSig.signal.peek().data;
+      if (!d) return;
+      if (!d.live) return (liveSig.value = null);
+      liveSig.value = d.requestedAt > Date.now() - 40 * 1000;
     }, 1000);
     return () => clearInterval(id);
   }, [evSig]);
 
-  return liveSig.value ? (
-    <div class="row live-label">
-      live <div class="live-dot" />
-    </div>
-  ) : (
-    <div />
-  );
+  return evSig.onData((d) => (
+    <button class={d.live && liveSig.value ? "action" : "integrated"} onClick={() => {
+      evSig.ctrl.toggleLive();
+    }}>
+      {!d.live ? "paused" : (liveSig.value ? "live" : "outdated")}
+      {d.live && liveSig.value && <div class="live-dot" />}
+    </button>
+  ));
 }
 
 function _FilterView({ filters }: { filters: VizFilters }) {
@@ -113,9 +119,11 @@ function _FilterEntry({
         type={filter.type}
         style="width: 12rem"
         value={
-          !!value ? (filter.type == "date"
-            ? new Date(value).toISOString().slice(0, 10)
-            : value) : ""
+          !!value
+            ? filter.type == "date"
+              ? new Date(value).toISOString().slice(0, 10)
+              : value
+            : ""
         }
         onInput={(e) => {
           const v = e.currentTarget.value;

@@ -1,3 +1,4 @@
+import { App } from "../bit/b_apps";
 import { ApiEvent } from "../bit/b_events";
 import { ProjectMember, ReadProjectMember } from "../bit/b_members";
 import { ViewFilter, VizViewEntry } from "../util/viz/v_viz";
@@ -19,7 +20,6 @@ export interface ApiAccount{
     name: string;
     privilege: number;
     password?: string;
-
 }
 
 export class DataService{
@@ -60,6 +60,11 @@ private constructor() {};
     async listEvent(projectId: string, filter: ViewFilter): Promise<ApiEvent[]>{
         return ApiService.i.get('/project/:project/event/list',{path: {project: projectId}, query: filter});
     }
+
+    // delete event
+    async deleteEvent(eventId: string): Promise<void>{
+        return ApiService.i.delete('/event/:id',{path: {id: eventId}});
+    }
    
 
 
@@ -78,6 +83,21 @@ private constructor() {};
     // delete member
     async deleteMember(projectId: string, memberId: string): Promise<void>{
         return ApiService.i.delete('/project/:project/member/:mId',{path: {project: projectId, mId: memberId}});
+    }
+
+    // ================== APPS ==================
+
+    // get apps
+    async listApp(projectId: string): Promise<App[]>{
+        return ApiService.i.get('/project/:project/app/list',{path: {project: projectId}});
+    }
+
+    async setApp(projectId: string, appId: string | null, app: Partial<App>): Promise<string>{
+        return ApiService.i.post('/project/:project/app/:appId',{path: {project: projectId, appId: appId}, body: app});
+    }
+
+    async deleteApp(projectId: string, appId: string): Promise<void>{
+        ApiService.i.delete('/project/:project/app/:appId',{path: {project: projectId, appId: appId}});
     }
 
     // ================== ACCOUNT ==================

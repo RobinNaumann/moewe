@@ -1,22 +1,14 @@
-import { ApiDefinition, ApiParameter } from "../server/docu";
+import { ApiDefinition } from "../server/docu";
 import { DataService } from "../service/s_data";
 import { admin, guard, projectMember } from "../tools/guard";
-import { logger } from "../tools/log";
-
-const _projectParam: ApiParameter = {
-  name: "pId",
-  in: "path",
-  required: true,
-  description: "the id of the project",
-  type: "string",
-};
+import { projectPathParam } from "./e_app";
 
 export const routesEvent: ApiDefinition[] = [
   {
     path: "/list",
     description: "get a list of all events of a project",
     parameters: [
-      _projectParam,
+      projectPathParam,
       {
         name: "type",
         in: "query",
@@ -52,7 +44,7 @@ export const routesEvent: ApiDefinition[] = [
     path: "/:eId",
     description: "get a single event",
     parameters: [
-      _projectParam,
+      projectPathParam,
       {
         name: "eId",
         in: "path",

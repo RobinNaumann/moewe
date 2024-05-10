@@ -1,10 +1,14 @@
-import { ApiDefinition, grouped } from "../server/docu";
-import { Account,  guardAdmin,  isAdmin,  projectType } from "../service/m_data";
+import { ApiDefinition, ApiParameter, grouped } from "../server/docu";
+import { Account, guardAdmin } from "../service/model/m_account";
+import { Project, projectType } from "../service/model/m_project";
 import { DataService } from "../service/s_data";
 import { admin, guard, isNull, projectMember } from "../tools/guard";
 import { logger } from "../tools/log";
+import { routesApp } from "./e_app";
 import { routesEvent } from "./e_event";
 import { routesMember } from "./e_member";
+
+
 
 export const routesProject: ApiDefinition[] = [
   {
@@ -34,7 +38,7 @@ export const routesProject: ApiDefinition[] = [
     ],
     workerAuthed:(user,id) => {
       guard(user,admin, projectMember(id));
-      return DataService.i.getProject(user.id,id);
+      return DataService.i.getProject(id);
     },
   },
   {
@@ -55,9 +59,9 @@ export const routesProject: ApiDefinition[] = [
       required: [],
       properties: projectType,
     },
-    workerAuthed: (user, body: Partial<Account>, id) => {
+    workerAuthed: (user, body: Partial<Project>, id) => {
       guard(user,admin, isNull(id), projectMember(id));
-      logger.debug("set project", user.id, id, body);
+      logger.debug(`set project ${id}`,`userId: ${user.id}`);
         return { id: DataService.i.setProject(user.id,id ? id : null, body)};
     },
   },
@@ -78,9 +82,10 @@ export const routesProject: ApiDefinition[] = [
     ],
     workerAuthed:(user,id) => {
       guard(user,admin, projectMember(id));
-      return DataService.i.deleteProject(user.id,id);
+      return DataService.i.deleteProject(id);
     },
   },
   ...grouped(routesEvent, {prefix:"/:pId/event",tags:["event"]}),
   ...grouped(routesMember, {prefix:"/:pId/member",tags:["member"]}),
+  ...grouped(routesApp, {prefix:"/:pId/app",tags:["app"]}),
 ];

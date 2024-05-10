@@ -1,6 +1,9 @@
 import { tables } from "../server/tables";
 import { err } from "../tools/error";
-import { Account, DbEvent, Project, isAdmin, parseEvent } from "./m_data";
+import { Account } from "./model/m_account";
+import { App } from "./model/m_app";
+import { DbEvent, parseEvent } from "./model/m_event";
+import { Project } from "./model/m_project";
 import { AuthService, AuthUser } from "./s_auth";
 import { DbFilter, DbService } from "./s_db";
 
@@ -82,7 +85,7 @@ export class DataService {
     }
   }
 
-  deleteProject(userId: string, id: string) {
+  deleteProject(id: string) {
     // Delete the project
     DbService.i.delete(tables.project, id);
 
@@ -93,7 +96,7 @@ export class DataService {
     });
   }
 
-  getProject(userId: string, id: string) {
+  getProject(id: string) {
     return DbService.i.get(tables.project, id);
   }
 
@@ -113,6 +116,29 @@ export class DataService {
     return DbService.i.list(tables.project, filter, page, pageSize);
   }
 
+  // ============== Project ==============
+
+  
+
+  setApp(id: string | null, app: Partial<App>) {
+    return DbService.i.set(tables.app, id, app);
+  }
+
+  deleteApp(id: string) {
+    DbService.i.delete(tables.app, id);
+  }
+
+  getApp(id: string) {
+    return DbService.i.get(tables.app, id);
+  }
+
+  listApps(projectId:string, page: number, pageSize: number) {
+    return DbService.i.list(tables.app, {
+      where: "project = $project",
+      params: { $project: projectId },
+    }, page, pageSize);
+  }
+
   // ============== EVENT ==============
 
   getEvent(id: string) {
@@ -121,7 +147,10 @@ export class DataService {
 
   listEvent(projectId:string, type:string | null, page: number, pageSize: number, params: {query: string, values:{[key: string]: any}}[] = []) {
     const filter: DbFilter = {
-      where: `project = $project ${type ? "AND type = $type" : ""} ${params.map(p => `AND ${p.query}`).join(" ")}`,
+      query: `SELECT *
+      FROM event
+      JOIN app a ON app = a.id
+      WHERE a.project = $project ${type ? "AND type = $type" : ""} ${params.map(p => `AND ${p.query}`).join(" ")}`,
       params: {
         $project: projectId,
         $type: type,
@@ -164,9 +193,13 @@ export class DataService {
       page,
       pageSize
     ).map((m: any) => {
+      try{
       const a = this.getAccount(m.account);
       return { ...m, account: a };
-    });
+      } catch(e) {
+        return null
+      }
+    }).filter((m: any) => m);
   }
 
   listMembers(userId: string, projectId: string, page: number, pageSize: number) {

@@ -32,9 +32,9 @@ const welcome = `
 <head>
   <title>moewe server</title>
 </head>
-<body style="font-family: sans-serif; padding: 1rem">
+<body style="font-family: sans-serif; padding: 3rem; display: flex; flex-direction: column; align-items: center">
   <div> welcome to the moewe server <b>API</b></div>
-  <a style="margin-top: 1rem" href="/docs">Documentation</a>
+  <a style="text-decoration: none; font-weight: bold; display: block; margin-top: 1rem; padding: 1rem; border-radius: 0.5rem; background-color: #33333310" href="/docs">documentation</a>
   </body>
 </html>
 `;

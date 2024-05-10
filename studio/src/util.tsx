@@ -1,8 +1,9 @@
-import { X, Edit2 } from "lucide-react";
+import { X, Edit2, HelpCircleIcon } from "lucide-react";
 import pino from "pino";
 import YAML from "yaml";
 import { route } from "preact-router";
 import { useState } from "preact/hooks";
+import React from "preact/compat";
 
 const language = navigator.language.substring(0, 2);
 
@@ -118,7 +119,11 @@ export function Field({
             {label}
           </div>
           {!editing ? (
-            <div onClick={() => setEditing(true)} class={classs} style="white-space: pre-wrap;">
+            <div
+              onClick={() => setEditing(true)}
+              class={classs}
+              style="white-space: pre-wrap;"
+            >
               {value || <i style="opacity: 0.4">{placeholder || label}</i>}
             </div>
           ) : multiline ? (
@@ -235,11 +240,27 @@ export function showConfirmDialog({
   });
 }
 
-
 export function toYAML(jsonObject: any): string {
   const doc = new YAML.Document();
   doc.contents = jsonObject;
-  
+
   return doc.toString();
 }
 
+export function HelpHeader({
+  level = 1,
+  children,
+  help,
+}: {
+  level: number;
+  children: any;
+  help: { label: string; body: string };
+}) {
+  return (
+    <div class="row main-space-between">
+      {" "}
+      {React.createElement(`h${level}`, { class: "margin-none flex-1", children: children })}
+      <button class="integrated" onClick={() => showConfirmDialog({okay: true, title: `<b><span style="font-weight: normal">info:</span> ${help.label}</b>`, message: help.body})}><HelpCircleIcon/></button>
+    </div>
+  );
+}

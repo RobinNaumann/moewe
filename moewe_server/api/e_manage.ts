@@ -1,9 +1,5 @@
-import { ApiDefinition, grouped } from "../server/docu";
-import { routesAccount } from "./e_account";
-import { routesAuth } from "./e_auth";
-import { routesLog } from "./e_log";
-import { routesProject } from "./e_project";
-import { isAdmin } from "../service/m_data";
+import { ApiDefinition } from "../server/docu";
+import { isAdmin } from "../service/model/m_account";
 import { ManageDataService } from "../service/s_manage_data";
 
 export const routesManage: ApiDefinition[] = [

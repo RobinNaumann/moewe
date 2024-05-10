@@ -1,5 +1,5 @@
 import { tables } from "../server/tables";
-import { isAdmin } from "../service/m_data";
+import { isAdmin } from "../service/model/m_account";
 import { AuthUser } from "../service/s_auth";
 import { DbService } from "../service/s_db";
 import { err } from "./error";

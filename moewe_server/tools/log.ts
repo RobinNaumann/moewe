@@ -5,12 +5,12 @@ class Log {
     if(!message) return;
     if(!Array.isArray(message)) message = [message];
 
-    for (let m of message) {
-      if (typeof m == "object") {
-        console.log(message);
+    for (let i = 0; i < message.length; i++) {
+      if (typeof message[i] == "object") {
+        console.log(message[i]);
         continue;
       }
-      console.log(style(`[${label}]`.padEnd(12) + `${m}`));
+      console.log(style((i == 0 ? `[${label}]` : "").padEnd(12) + `${message[i]}`));
     }
   }
 

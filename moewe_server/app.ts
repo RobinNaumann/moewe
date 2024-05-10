@@ -66,12 +66,13 @@ export const appInfo = {
     host: _envString("SERVER_HOST", "localhost"),
     info: {
       title: "mœwe API",
-      version: "1.0.0",
+      version: "1.2.0",
       description: "the API for the mœwe app",
     },
   },
   config: {
     allowRegistration: process.env.ALLOW_USER_SIGNUP === "true" || false,
+    eventMaxSize: _envInt("EVENT_MAX_SIZE", 1000),
   }
 };
 
@@ -93,13 +94,8 @@ export function initApp(): boolean {
     return false;
   }
 
-  // copy the database from the template if it does not exist
-  if(!fs.existsSync(appInfo.server.db)) {
-    logger.info("copying database from template...");
-    fs.copyFileSync("./db/data.db.template", appInfo.server.db);
-  }
-
   DbService.i.init();
+
 
   // create the admin account if it does not exist
   const aD = appInfo.auth.admin;

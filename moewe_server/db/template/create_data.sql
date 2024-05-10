@@ -55,9 +55,9 @@ create table "event" (
 );
 
 /* make the events table act like a ring buffer for each app. in sqlite syntax */
-create trigger "event_insert" after insert on "event"
+/*create trigger "event_insert" after insert on "event"
 begin
     delete from "event" where "app" = new."app" and "id" not in (
         select "id" from "event" where "app" = new."app" order by "created_at" desc limit 100000
     );
-end;
+end;*/

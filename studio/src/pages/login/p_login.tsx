@@ -1,9 +1,9 @@
-import { useState } from "preact/hooks";
-import { AuthBit } from "../../bit/b_auth";
-import { Spinner } from "../..";
 import { TriangleAlert } from "lucide-react";
+import { useState } from "preact/hooks";
+import { Spinner } from "../..";
+import { AuthBit } from "../../bit/b_auth";
+import { go } from "../../util";
 import { HeaderView } from "../v_header";
-import { CreateAccountButton } from "../account/v_acc_edit";
 
 export function LoginView({}) {
   const authBit = AuthBit.use();
@@ -28,8 +28,8 @@ export function LoginView({}) {
             >
               <h1 style="text-align: center">Login</h1>
               <input
-                type="text"
-                placeholder="username"
+                type="email"
+                placeholder="email"
                 value={username}
                 onInput={(e) => setUsername(e.currentTarget.value)}
               />
@@ -50,7 +50,11 @@ export function LoginView({}) {
               >
                 login
               </button>
-              <CreateAccountButton/>
+              <button class="action" onClick={go("/signup")}>
+                <div class="row">
+                  <div>create account</div>
+                </div>
+              </button>
               {error ? (
                 <div class="card row secondary">
                   <TriangleAlert />

@@ -1,12 +1,12 @@
-import { Edit2, Plus, PlusIcon } from "lucide-react";
+import { Signal, useSignal } from "@preact/signals";
+import { PlusIcon } from "lucide-react";
+import { Spinner } from "..";
 import { AuthBit } from "../bit/b_auth";
+import { ElbeDialog } from "../elbe/components";
 import { DataService, Project } from "../service/s_data";
 import { go, showToast } from "../util";
 import { SBit } from "../util/bit/sbit";
-import { Signal, useSignal } from "@preact/signals";
-import { Spinner } from "..";
 import { HeaderView } from "./v_header";
-import { ElbeDialog } from "../elbe/components";
 
 export function HomePage({}) {
   const authBit = AuthBit.use();
@@ -58,13 +58,11 @@ function ProjectSnippet({
         class="card row-resp main-space-between pointer"
         onClick={go("/project/" + project.id)}
       >
-       
-          <div class="column cross-stretch-fill">
-            <span class="header-5">{project.name}</span>
-            <span>{project.about}</span>
-          </div>
-          <span class="text-s">{project.id}</span>
-     
+        <div class="column cross-stretch-fill">
+          <span class="header-5">{project.name}</span>
+          <span>{project.about}</span>
+        </div>
+        <span class="text-s">{project.id}</span>
       </div>
     </div>
   );
@@ -74,7 +72,6 @@ function ProjectCreateBtn({ onChange }: { onChange: () => void }) {
   const sig = useSignal(null);
 
   const isValid = (signal: Signal) => {
-    console.log(signal.value);
     return signal.value?.name?.length > 0 && signal.value.about?.length > 0;
   };
 

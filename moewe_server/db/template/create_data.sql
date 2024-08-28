@@ -8,7 +8,6 @@ create table "account" (
     "id"            varchar(50)     not null,
     "email"         varchar(255)    not null unique,
     "name"          varchar(255)    not null,
-    "verified"      boolean         not null    default FALSE,
     "privilege"     bigint,    
     "pw_hash"       varchar(255)    not null,
     "pw_salt"       varchar(255)    not null,

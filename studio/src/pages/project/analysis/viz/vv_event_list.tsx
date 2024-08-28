@@ -1,18 +1,13 @@
-import {
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Eye,
-  Globe2,
-  ListIcon,
-  TabletSmartphone,
-  User,
-} from "lucide-react";
-import { ApiEvent } from "../../../bit/b_events";
 import { useSignal } from "@preact/signals";
-import { ElbeDialog } from "../../../elbe/components";
-import { humanId } from "../../../util/u_hash_to_human";
-import { Visualization } from "../../../util/viz/v_viz";
+import { ChevronDown, ChevronUp, Clock, Eye, ListIcon } from "lucide-react";
+import { ElbeDialog } from "../../../../elbe/components";
+import { ApiEvent } from "../../../../shared";
+import { Visualization, VizContext } from "../../../../util/viz/v_viz";
+import { DeviceChip, LocationChip, SessionChip } from "../v_event_chips";
+
+export function Grow({ children }: { children: any }) {
+  return <div class="flex-1 row">{children}</div>;
+}
 
 const columns = [
   {
@@ -65,15 +60,13 @@ export const eventListViz: Visualization<typeof defaultOptions> = {
     type: "boolean",
   })),
   defaults: defaultOptions,
-  builder: (data, o) => <EventListViz options={o} events={data.entries} />,
+  builder: (c) => <EventListViz c={c} />,
 };
 
 function EventListViz({
-  options,
-  events,
+  c,
 }: {
-  options: typeof defaultOptions;
-  events: ApiEvent[];
+  c: VizContext<ApiEvent, typeof defaultOptions>;
 }) {
   const sortSig = useSignal({ key: "time", order: "desc" });
 
@@ -82,13 +75,13 @@ function EventListViz({
       class="column cross-stretch-fill gap-quarter"
       style={{
         minWidth:
-          10 + 10 * columns.filter((c) => options[c.key]).length + "rem",
+          10 + 15 * columns.filter((e) => c.options[e.key]).length + "rem",
       }}
     >
-      <_HeaderView options={options} sortSig={sortSig} />
-      {events
+      <_HeaderView options={c.options} sortSig={sortSig} />
+      {c.events
         .sort((a, b) => {
-          const col = columns.find((c) => options[c.key]);
+          const col = columns.find((c) => c.key === sortSig.value.key);
           if (!col) return 0;
           return sortSig.value.order === "asc"
             ? col.sortFn(a, b)
@@ -96,7 +89,16 @@ function EventListViz({
         })
 
         .map((ev) => (
-          <_EventRow ev={ev} options={options} />
+          <_EventRow
+            ev={ev}
+            options={c.options}
+            onKeyClick={(k) =>
+              c.setFilter(
+                [{ field: "key", local: false, operator: "=", value: k }],
+                true
+              )
+            }
+          />
         ))}
     </div>
   );
@@ -147,15 +149,19 @@ function _HeaderView({
 function _EventRow({
   options,
   ev,
+  onKeyClick,
 }: {
   options: any; //typeof defaultOptions;
   ev: ApiEvent;
+  onKeyClick: (key: string) => void;
 }) {
   return (
     <div class="row main-space-between t-row highlightable">
       {options.col_key && (
         <div class={"flex-1 row"}>
-          <div class="chip">{ev.key}</div>
+          <div class="chip" onClick={() => onKeyClick(ev.key)}>
+            {ev.key}
+          </div>
         </div>
       )}
 
@@ -180,13 +186,9 @@ function _EventRow({
 
       {options.col_device &&
         (ev.meta.device.platform ? (
-          <div class="flex-1 row gap-half">
-            <TabletSmartphone />
-            <div class="column cross-stretch gap-none">
-              <div class="">{ev.meta.device.platform}</div>
-              <div class="b text-s">{ev.meta.device.device ?? ""}</div>
-            </div>
-          </div>
+          <Grow>
+            <DeviceChip event={ev} />
+          </Grow>
         ) : (
           <div class="i flex-1" style="opacity: 0.4">
             —
@@ -195,13 +197,9 @@ function _EventRow({
 
       {options.col_location &&
         (ev.meta.location.country ? (
-          <div class="flex-1 row gap-half">
-            <Globe2 />
-            <div class="column cross-stretch gap-none">
-              <div class="">{ev.meta.location.country}</div>
-              <div class="b text-s">{ev.meta.location.city ?? ""}</div>
-            </div>
-          </div>
+          <Grow>
+            <LocationChip event={ev} />
+          </Grow>
         ) : (
           <div class="i flex-1" style="opacity: 0.4">
             —
@@ -209,18 +207,9 @@ function _EventRow({
         ))}
       {options.col_session &&
         (ev.meta.session ? (
-          <div class="flex-1 row gap-half">
-            <User />
-            <div
-              class="secondary rounded text-s"
-              style={{
-                padding: "0.2rem 0.3rem",
-                marginTop: "0.4rem",
-              }}
-            >
-              {humanId(ev.meta.session)}
-            </div>
-          </div>
+          <Grow>
+            <SessionChip event={ev} />
+          </Grow>
         ) : (
           <div class="i flex-1" style="opacity: 0.4">
             —
@@ -228,13 +217,13 @@ function _EventRow({
         ))}
 
       <div class="flex-1 row main-end">
-        <DataDialogButton {...ev} />
+        <DataDialogButton event={ev} />
       </div>
     </div>
   );
 }
 
-function DataDialogButton(ev: ApiEvent) {
+export function DataDialogButton({ event }: { event: ApiEvent }) {
   const openSig = useSignal(false);
   return (
     <button class="action" onClick={() => (openSig.value = true)}>
@@ -248,7 +237,7 @@ function DataDialogButton(ev: ApiEvent) {
           class="inverse card"
           style="font-family: 'Space Mono'; overflow: scroll; margin: 0"
         >
-          {JSON.stringify(ev.data, null, 2)}
+          {JSON.stringify(event.data, null, 2)}
         </pre>
       </ElbeDialog>
     </button>

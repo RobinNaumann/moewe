@@ -1,3 +1,4 @@
+import { useSignal } from "@preact/signals";
 import {
   ChevronDown,
   ChevronUp,
@@ -6,26 +7,20 @@ import {
   TriangleAlert,
   XIcon,
 } from "lucide-react";
-import { vizs } from "./d_viz";
-import { useSignal } from "@preact/signals";
-import { ElbeDialog } from "../../elbe/components";
+import { useLayoutEffect } from "preact/compat";
+import { EventsBit } from "../../bit/b_events";
 import { ViewBit } from "../../bit/b_view";
-import { ApiEvent, EventsBit } from "../../bit/b_events";
-import { useLayoutEffect, useState } from "preact/compat";
+import { ElbeDialog } from "../../elbe/components";
+import { ApiEvent, ApiFilters } from "../../shared";
+import { vizs } from "./d_viz";
 
 export interface VizViewEntry {
   id: string;
   options?: any;
 }
 
-export type ViewFilter = {
-  date_from: number;
-  //date_to: number;
-  [key: string]: any;
-};
-
 export interface ViewConfig {
-  filter: ViewFilter;
+  filter: ApiFilters;
   _key?: number | null;
   views: {
     [key: string]: {
@@ -40,9 +35,12 @@ export interface VizOption {
   type: "boolean" | "string" | "number";
 }
 
-export interface VizData<T> {
-  entries: T[];
-  filter: ViewFilter;
+export interface VizContext<T, Options> {
+  events: T[];
+  filter: ApiFilters;
+  options: Options;
+  setOption: (key: string, value: any) => any;
+  setFilter: (filter: ApiFilters, append?: boolean) => any;
 }
 
 export interface Visualization<Options> {
@@ -52,11 +50,7 @@ export interface Visualization<Options> {
   icon: any;
   options: VizOption[];
   defaults: Options;
-  builder: (
-    data: VizData<ApiEvent>,
-    options: Options,
-    setOption: (key: string, value: any) => any
-  ) => any;
+  builder: (data: VizContext<ApiEvent, Options>) => any;
 }
 
 function _resolveViz<T extends ApiEvent>(
@@ -65,43 +59,46 @@ function _resolveViz<T extends ApiEvent>(
   return vizs.find((v) => v.id.toLowerCase() === viz.id.toLowerCase());
 }
 
-function _toColumns(vizs: VizViewEntry[], ): {viz: VizViewEntry, index: {i: number, max:number}}[][] {
-  const [[columns, id], _set] = useState([[[]],vizs.toString()]);
-  useLayoutEffect(() => {
-    function update() {
-      
-      let currentWidth = self.innerWidth;
-      let colCount = Math.floor(currentWidth / 600);
-      const maxI = vizs.length ?? 0;
+function _asColumns(
+  vizs: VizViewEntry[],
+  cols: number
+): { viz: VizViewEntry; index: { i: number; max: number } }[][] {
+  const maxI = vizs.length ?? 0;
+  const columns: {
+    viz: VizViewEntry;
+    index: { i: number; max: number };
+  }[][] = [];
+  for (let i = 0; i < cols; i++) columns.push([]);
+  for (let i = 0; i < vizs.length; i++) {
+    columns[i % cols].push({
+      viz: vizs[i],
+      index: { i, max: maxI },
+    });
+  }
 
-      const columns: {
-        viz: VizViewEntry;
-        index: { i: number; max: number };
-      }[][] = [];
-      for (let i = 0; i < colCount; i++) columns.push([]);
-      for (let i = 0; i < vizs.length; i++) {
-        columns[i % colCount].push({
-          viz: vizs[i],
-          index: { i, max: maxI },
-        });
-      }
-      _set([columns, vizs.toString()]);
-    }
-    window.addEventListener('resize', update);
-    update();
-    return () => window.removeEventListener('resize', update);
-  }, [Date.now()]);
   return columns;
 }
 
 export function VisView({ view }: { view: string }) {
   const viewBit = ViewBit.use();
+  const columnSig = useSignal(2);
+
+  //calculate columns
+  useLayoutEffect(() => {
+    function update() {
+      let currentWidth = self.innerWidth;
+      let colCount = Math.max(1, Math.floor(currentWidth / 600));
+      columnSig.value = colCount;
+    }
+    window.addEventListener("resize", update);
+    update();
+    return () => window.removeEventListener("resize", update);
+  });
 
   return viewBit.map({
     onData: (d) => {
       const viewConf = d.views[view] ?? { filter: null, vizs: [] };
-      let columns = _toColumns([...viewConf.vizs]);
-      
+      const columns = _asColumns(viewConf.vizs, columnSig.value);
 
       return (
         <div class="column cross-stretch">
@@ -142,15 +139,17 @@ function _Viz({
       builder={() =>
         eventsBit.map({
           onData: (evData) => {
-            const data = {
-              entries: evData.events,
+            const data: VizContext<any, any> = {
+              events: evData.events,
               filter: d.filter,
+              options: { ...rViz.defaults, ...(viz.options ?? {}) },
+              setOption: (k, v) => viewBit.ctrl.setOption(view, rViz.id, k, v),
+              setFilter: (filter, append) =>
+                append
+                  ? viewBit.ctrl.addFilter(...filter)
+                  : viewBit.ctrl.setFilter(filter),
             };
-            return _resolveViz(viz)?.builder(
-              data,
-              { ...rViz.defaults, ...(viz.options ?? {}) },
-              (k, v) => viewBit.ctrl.setOption(view, rViz.id, k, v)
-            );
+            return _resolveViz(viz)?.builder(data);
           },
         })
       }
@@ -345,15 +344,17 @@ function OptionView({
           <div class="column cross-stretch-fill">
             <span class="b">{option.label}</span>
           </div>
-          {option.type === "boolean" && (
-            <input type="checkbox" checked={v && true} onChange={_onChange} />
-          )}
-          {option.type === "string" && (
-            <input type="text" value={v} onChange={_onChange} />
-          )}
-          {option.type === "number" && (
-            <input type="number" value={v} onChange={_onChange} />
-          )}
+          <div>
+            {option.type === "boolean" && (
+              <input type="checkbox" checked={v && true} onChange={_onChange} />
+            )}
+            {option.type === "string" && (
+              <input type="text" value={v} onChange={_onChange} />
+            )}
+            {option.type === "number" && (
+              <input type="number" value={v} onChange={_onChange} />
+            )}
+          </div>
         </div>
       );
     },

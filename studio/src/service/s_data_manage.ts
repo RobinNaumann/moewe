@@ -1,21 +1,15 @@
-import { ApiEvent } from "../bit/b_events";
-import { ProjectMember, ReadProjectMember } from "../bit/b_members";
-import { ViewFilter } from "../util/viz/v_viz";
 import { ApiService } from "./s_api";
 
+export class ManageDataService {
+  static readonly i = new ManageDataService();
 
+  private constructor() {}
 
-export class ManageDataService{
-static readonly i = new ManageDataService();
+  getConfig() {
+    return ApiService.i.get("/manage/config");
+  }
 
-private constructor() {};
-
-    getConfig(){
-        return ApiService.i.get('/manage/config');
-    }
-
-
-    getMetrics(){
-        return ApiService.i.get('/manage/metrics');
-    }
+  getMetrics() {
+    return ApiService.i.get("/manage/metrics");
+  }
 }

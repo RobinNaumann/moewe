@@ -1,15 +1,27 @@
-import { ChevronDown, ChevronUp, CircleHelp, Edit2, PlusIcon, Trash2 } from "lucide-react";
-import { ProjectBit } from "../../bit/b_project";
-import { Field, HelpHeader, showConfirmDialog, showToast } from "../../util";
-import { DataService } from "../../service/s_data";
 import { Signal, useSignal } from "@preact/signals";
-import { ElbeDialog } from "../../elbe/components";
+import { ChevronDown, ChevronUp, Edit2, PlusIcon, Trash2 } from "lucide-react";
 import { App, AppsBit } from "../../bit/b_apps";
+import { ProjectBit } from "../../bit/b_project";
+import { ElbeDialog } from "../../elbe/components";
+import { DataService } from "../../service/s_data";
+import { Field, HelpHeader, showConfirmDialog, showToast } from "../../util";
 
-const _helpApps = {label: "apps", body: "apps allow you to connect clients to your project. Each app has a unique id and can be configured with flags. Only apps can send events to your project."};
-const _helpClientSetup = {label: "client setup", body: "use this information to connect the client to this instance of mœwe"};
-const _helpVersion = {label: "version", body: "incrementing the build number value will allow you to notify the user that once a new version of the client is available. The build number is value behind the last '+' symbol."};
-const _helpFlags = {label: "flags", body: "flags are key-value pairs that can be used to configure the client. The value can be a string, number or boolean."};
+const _helpApps = {
+  label: "apps",
+  body: "apps allow you to connect clients to your project. Each app has a unique id and can be configured with flags. Only apps can send events to your project.",
+};
+const _helpClientSetup = {
+  label: "client setup",
+  body: "use this information to connect the client to this instance of mœwe",
+};
+const _helpVersion = {
+  label: "version",
+  body: "incrementing the build number value will allow you to notify the user that once a new version of the client is available. The build number is value behind the last '+' symbol.",
+};
+const _helpFlags = {
+  label: "flags",
+  body: "flags are key-value pairs that can be used to configure the client. The value can be a string, number or boolean.",
+};
 
 function _AppCreateBtn({
   projectId,
@@ -21,7 +33,6 @@ function _AppCreateBtn({
   const sig = useSignal(null);
 
   const isValid = (signal: Signal) => {
-    console.log(signal.value);
     return signal.value?.name?.length > 0; // && signal.value.platform?.length > 0;
   };
 
@@ -72,15 +83,15 @@ function _AppCreateBtn({
   );
 }
 
-
-
 export function ProjectAppsView({}) {
   const projectBit = ProjectBit.use();
 
   return projectBit.onData((project) => {
     return (
       <div class={"base-limited column cross-stretch"} style="margin-top: 2rem">
-        <HelpHeader level={2} help={_helpApps}>Apps</HelpHeader>
+        <HelpHeader level={2} help={_helpApps}>
+          Apps
+        </HelpHeader>
         <AppsBit.Provide projectId={project.id}>
           <_AppsView />
         </AppsBit.Provide>
@@ -141,13 +152,19 @@ function _AppView({
       {open && (
         <div class="column cross-stretch">
           <div class="row">
-            <_DeleteBtn appId={app.id}/>
-            </div>
-            <HelpHeader level={6} help={_helpClientSetup}>client setup</HelpHeader>
-            <_clientInfo app={app} />
-          <HelpHeader level={6} help={_helpVersion}>version</HelpHeader>
+            <_DeleteBtn appId={app.id} />
+          </div>
+          <HelpHeader level={6} help={_helpClientSetup}>
+            client setup
+          </HelpHeader>
+          <_clientInfo app={app} />
+          <HelpHeader level={6} help={_helpVersion}>
+            version
+          </HelpHeader>
           <_versionInfo app={app} />
-          <HelpHeader level={6} help={_helpFlags}>flags</HelpHeader>
+          <HelpHeader level={6} help={_helpFlags}>
+            flags
+          </HelpHeader>
           <_flagsInfo app={app} />
         </div>
       )}
@@ -158,14 +175,22 @@ function _AppView({
 function _DeleteBtn({ appId }: { appId: string }) {
   const appsBit = AppsBit.use();
   return (
-    <button onClick={async () => {
-      const yes = await showConfirmDialog({title: "delete app",message: "are you sure you want to delete this app? All clients connected to that app won't be able to submit events<br/><br/><b>THIS CANNOT BE UNDONE</b>"});
-      if(yes === true) appsBit.ctrl.deleteApp(appId)}
-      
-    }
-    class="error minor borderless" style="background-color: transparent"><Trash2/>delete app</button>
+    <button
+      onClick={async () => {
+        const yes = await showConfirmDialog({
+          title: "delete app",
+          message:
+            "are you sure you want to delete this app? All clients connected to that app won't be able to submit events<br/><br/><b>THIS CANNOT BE UNDONE</b>",
+        });
+        if (yes === true) appsBit.ctrl.deleteApp(appId);
+      }}
+      class="error minor borderless"
+      style="background-color: transparent"
+    >
+      <Trash2 />
+      delete app
+    </button>
   );
-
 }
 
 function _clientInfo({ app }: { app: App }) {
@@ -173,7 +198,7 @@ function _clientInfo({ app }: { app: App }) {
     { label: "host", value: location.host.split(":")[0], mono: true },
     { label: "port", value: 80, mono: true },
     { label: "project", value: app.project, mono: true },
-    { label: "appId", value: app.id, mono: true },
+    { label: "app", value: app.id, mono: true },
   ];
   return (
     <div class="column cross-stretch gap-half">
@@ -204,7 +229,8 @@ function _versionInfo({ app }: { app: App }) {
           value={`${app.config.version ?? ""}`}
           onSubmit={(v) => {
             const parts = v.split("+");
-            if(parts.length != 2 || isNaN(parseInt(parts[1]))) return showToast("invalid version format");
+            if (parts.length != 2 || isNaN(parseInt(parts[1])))
+              return showToast("invalid version format");
             appBit.ctrl.setFlag(app.id, "version", v);
           }}
         />
@@ -231,39 +257,50 @@ function _flagsInfo({ app }: { app: App }) {
 
   return (
     <div class="column cross-stretch-fill">
-      {Object.entries(app.config).sort(sortAlphabetically).map(([key, value]) => {
-        return (
-          <div
-            class="row cross-center card padding-none"
-            style={{paddingLeft: "1rem", opacity: key === "version" ? 0.3 : 1}}
-          >
-            <div class="flex-1 row">
-              {key}
-              <div
-                class="text-s secondary rounded"
-                style={{ padding: "0.5rem" }}
-              >
-                {["string", "int", "bool", "unknown"][typeString(value)]}
+      {Object.entries(app.config)
+        .sort(sortAlphabetically)
+        .map(([key, value]) => {
+          return (
+            <div
+              class="row cross-center card padding-none"
+              style={{
+                paddingLeft: "1rem",
+                opacity: key === "version" ? 0.3 : 1,
+              }}
+            >
+              <div class="flex-1 row">
+                {key}
+                <div
+                  class="text-s secondary rounded"
+                  style={{ padding: "0.5rem" }}
+                >
+                  {["string", "int", "bool", "unknown"][typeString(value)]}
+                </div>
+              </div>
+              <div class="flex-1 b">{value?.toString() ?? "null"}</div>
+              <div class="row gap-none">
+                {key === "version" ? (
+                  <div style="width:3rem" />
+                ) : (
+                  <_EditFlagBtn
+                    appId={app.id}
+                    current={{ key, value, type: typeString(value) }}
+                  >
+                    <Edit2 />
+                  </_EditFlagBtn>
+                )}
+                <button
+                  class="action"
+                  onClick={() => {
+                    appBit.ctrl.setFlag(app.id, key, null);
+                  }}
+                >
+                  <Trash2 />
+                </button>
               </div>
             </div>
-            <div class="flex-1 b">{value?.toString() ?? "null"}</div>
-           <div class="row gap-none">
-           {key === "version" ? <div style="width:3rem"/> : <_EditFlagBtn
-                appId={app.id}
-                current={{ key, value, type: typeString(value) }}
-              >
-                <Edit2 />
-              </_EditFlagBtn>}
-              <button class="action" onClick={() => {
-                appBit.ctrl.setFlag(app.id, key, null);
-              
-              }}>
-                <Trash2 />
-              </button>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
       <_EditFlagBtn appId={app.id}>
         <PlusIcon />
         add flag
@@ -317,7 +354,7 @@ function _EditFlagBtn({
               }
             />
 
-            <_SelectField
+            <SelectField
               options={["string", "int", "bool"]}
               value={sig.value.type}
               onChange={(v) => (sig.value = { ...sig.value, type: v })}
@@ -361,7 +398,8 @@ function _EditFlagBtn({
                     sig.value.type == null
                   )
                     return;
-                    if(sig.value.key === "version") throw new Error("cannot set version flag");
+                  if (sig.value.key === "version")
+                    throw new Error("cannot set version flag");
                   if (sig.value.type == 0) {
                     if (sig.value.value.length == 0)
                       throw new Error("empty string");
@@ -375,7 +413,11 @@ function _EditFlagBtn({
                       parseInt(sig.value.value)
                     );
                   } else if (sig.value.type == 2) {
-                    appsBit.ctrl.setFlag(appId, sig.value.key, !!sig.value.value);
+                    appsBit.ctrl.setFlag(
+                      appId,
+                      sig.value.key,
+                      !!sig.value.value
+                    );
                   }
                 } catch (e) {
                   showToast("could not set flag. check values");
@@ -391,7 +433,7 @@ function _EditFlagBtn({
   );
 }
 
-function _SelectField({
+export function SelectField({
   options,
   value,
   onChange,

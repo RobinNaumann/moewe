@@ -1,11 +1,10 @@
+import { err } from "donau";
+import maxmind, { CityResponse, Reader } from "maxmind";
 import { appInfo } from "../app";
 import { tables } from "../server/tables";
-import { err } from "../tools/error";
-import { logger } from "../tools/log";
 import { PushEvent } from "./model/m_event";
 import { AuthService } from "./s_auth";
 import { DbService } from "./s_db";
-import maxmind, { CityResponse, Reader } from 'maxmind';
 
 export type ReqMeta = {
   ip?: string;
@@ -17,9 +16,6 @@ interface _projectCache {
   sessionSalt: string;
   //  eventCount: number;
 }
-
-
-const sessionTTL = 1000 * 60 * 60 * 24;
 
 export class LogService {
   static readonly i = new LogService();
@@ -35,20 +31,18 @@ export class LogService {
     );
   }
 
-  private _getLocation(reqMeta: ReqMeta):any {
+  public _getLocation(reqMeta: ReqMeta): any {
     if (!reqMeta.ip) return null;
-    const d = this._locationLookup?.get("79.215.101.205");
-    if(!d) return null;
+    const d = this._locationLookup?.get(reqMeta.ip);
+    if (!d) return null;
     return {
       city: d.city?.names?.en,
       country: d.country?.iso_code,
-      location: {lat: d.location?.latitude, lon: d.location?.longitude},
+      location: { lat: d.location?.latitude, lon: d.location?.longitude },
     };
-
   }
 
   // Fix: Add the missing 'prototype' property to the 'Reader' type
-
 
   private _generateSessionHash(
     now: number,
@@ -57,7 +51,7 @@ export class LogService {
     meta: ReqMeta
   ) {
     let cache = this.projectCache[projectId];
-    if (cache && cache.lastEvent + sessionTTL > now) {
+    if (cache && cache.lastEvent + appInfo.config.sessionTTL > now) {
       cache = {
         ...cache,
         lastEvent: now,
@@ -74,12 +68,7 @@ export class LogService {
   logEvent(appId: string, event: Partial<PushEvent>, reqMeta: ReqMeta) {
     const now = Date.now();
     const location = this._getLocation(reqMeta);
-    const sessionHash = this._generateSessionHash(
-      now,
-      appId,
-      event,
-      reqMeta
-    );
+    const sessionHash = this._generateSessionHash(now, appId, event, reqMeta);
 
     const eventData = {
       app: appId,
@@ -90,19 +79,21 @@ export class LogService {
         platform: event.meta?.platform,
         device: event.meta?.device,
         session: sessionHash,
-        ...location
+        ...location,
       },
       data: event.data,
-    }
+    };
 
     this._guardSize(eventData, appInfo.config.eventMaxSize);
 
     return DbService.i.set(tables.event, null, eventData);
   }
 
-  private _guardSize(d:object, maxKiloByte: number){
-    if(JSON.stringify(d).length > maxKiloByte * 500){
-      throw err.badRequest(`the event you logged is too large (max ${maxKiloByte}kb)`);
+  private _guardSize(d: object, maxKiloByte: number) {
+    if (JSON.stringify(d).length > maxKiloByte * 500) {
+      throw err.badRequest(
+        `the event you logged is too large (max ${maxKiloByte}kb)`
+      );
     }
   }
 }

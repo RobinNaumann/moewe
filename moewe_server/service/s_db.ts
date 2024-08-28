@@ -1,9 +1,8 @@
 import { Database } from "bun:sqlite";
 import crypto from "crypto";
-import { err } from "../tools/error";
+import { err, logger } from "donau";
+import fs from "node:fs";
 import { appInfo } from "../app";
-import { logger } from "../tools/log";
-import fs from 'node:fs';
 
 export interface DbFilter {
   /**
@@ -24,16 +23,12 @@ export class DbService {
 
   static readonly i = new DbService();
 
-  private constructor() {
-    
-  }
+  private constructor() {}
 
-  
   init() {
-    try{
-      new Database(appInfo.server.db, {create: false, readonly: true});
-    }
-    catch(e){
+    try {
+      new Database(appInfo.server.db, { create: false, readonly: true });
+    } catch (e) {
       logger.warning("Database not found, creating new one");
       this._createDb(appInfo.server.db);
       logger.success("created new database at " + appInfo.server.db);
@@ -42,13 +37,12 @@ export class DbService {
   }
 
   private _createDb(path: string) {
-      const query = fs.readFileSync("./db/template/create_data.sql", "utf8");
-      let db = new Database(appInfo.server.db, {create: true, readwrite: true});
-      logger.debug("creating new database at " + appInfo.server.db);
-      db.run(query);
-      db.close();
+    const query = fs.readFileSync("./db/template/create_data.sql", "utf8");
+    let db = new Database(appInfo.server.db, { create: true, readwrite: true });
+    logger.debug("creating new database at " + appInfo.server.db);
+    db.run(query);
+    db.close();
   }
-
 
   /** Add/update an entry in the sqlite database at /db/data.db
    * @returns The id of the entry
@@ -69,7 +63,9 @@ export class DbService {
   }
 
   getQuery(table: Table, filter: DbFilter): any {
-    const query = filter.query ?? `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`;
+    const query =
+      filter.query ??
+      `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`;
     return this._inflate(table, this._db.query(query).get(filter.params));
   }
 
@@ -79,14 +75,18 @@ export class DbService {
     page: number,
     pageSize: number
   ): any[] {
-    const query = (filter.query ?? `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`) + " LIMIT $limit OFFSET $offset";
-    return this._inflateList(table, this._db
-      .query(query)
-      .all({
+    const query =
+      (filter.query ??
+        `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`) +
+      " LIMIT $limit OFFSET $offset";
+    return this._inflateList(
+      table,
+      this._db.query(query).all({
         ...filter.params,
         $limit: pageSize,
         $offset: (page - 1) * pageSize,
-      }));
+      })
+    );
   }
 
   query(query: string, params?: any): any[] {
@@ -99,7 +99,9 @@ export class DbService {
   }
 
   deleteQuery(table: Table, filter: DbFilter): void {
-    const query = filter.query ?? `DELETE FROM ${table._name} WHERE ${filter.where ?? "1=1"}`;
+    const query =
+      filter.query ??
+      `DELETE FROM ${table._name} WHERE ${filter.where ?? "1=1"}`;
     this._db.query(query).run(filter.params);
   }
 
@@ -118,20 +120,24 @@ export class DbService {
     filter = filter ?? { where: "1 = 1", params: {} };
 
     //remove unused entries from params:
-    for(let key of Object.keys(filter?.params ?? {})){
-      if(!(filter.where?.includes(key) ?? true)) {
+    for (let key of Object.keys(filter?.params ?? {})) {
+      if (!(filter.where?.includes(key) ?? true)) {
         delete filter.params[key];
       }
     }
 
-    const query = (filter.query ?? `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`) + " LIMIT $limit OFFSET $offset";
-    return this._inflateList(table, this._db
-      .query(query)
-      .all({
+    const query =
+      (filter.query ??
+        `SELECT * FROM ${table._name} WHERE ${filter.where ?? "1=1"}`) +
+      " LIMIT $limit OFFSET $offset";
+    return this._inflateList(
+      table,
+      this._db.query(query).all({
         ...filter.params,
         $limit: pageSize,
         $offset: (page - 1) * pageSize,
-      }));
+      })
+    );
   }
 
   private _update(table: Table, data: object, id: string): string {

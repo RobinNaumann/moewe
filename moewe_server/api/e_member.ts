@@ -1,5 +1,6 @@
-import { ApiDefinition, ApiParameter } from "../server/docu";
+import { ApiParameter, DonauRoute, routeAuthed } from "donau";
 import { memberPublicType } from "../service/model/m_member";
+import { AuthUser } from "../service/s_auth";
 import { DataService } from "../service/s_data";
 import { admin, guard, projectMember } from "../tools/guard";
 
@@ -11,18 +12,16 @@ const _projectParam: ApiParameter = {
   type: "string",
 };
 
-export const routesMember: ApiDefinition[] = [
-  {
-    path: "/list",
+export const routesMember: DonauRoute<AuthUser>[] = [
+  routeAuthed("/list", {
     description: "get a list of all members of a project",
     parameters: [_projectParam],
-    workerAuthed: (user,pId) => {
-      guard(user,admin, projectMember(pId));
-      return DataService.i.listMembersRich(user.id,pId , 1, 100);
+    workerAuthed: (user, pId) => {
+      guard(user, admin, projectMember(pId));
+      return DataService.i.listMembersRich(user.id, pId, 1, 100);
     },
-  },
-  {
-    path: "/:mId",
+  }),
+  routeAuthed("/{mId}", {
     description: "get a single membership",
     parameters: [
       _projectParam,
@@ -34,14 +33,13 @@ export const routesMember: ApiDefinition[] = [
         type: "string",
       },
     ],
-    workerAuthed: (user,pId, mId) => {
-      guard(user,admin, projectMember(pId));
-      return DataService.i.getMember(user.id,pId, mId);
+    workerAuthed: (user, pId, mId) => {
+      guard(user, admin, projectMember(pId));
+      return DataService.i.getMember(user.id, pId, mId);
     },
-  },
-  {
+  }),
+  routeAuthed("/{mId}?", {
     method: "post",
-    path: "/:mId?",
     description: "set a single membership",
     parameters: [
       _projectParam,
@@ -58,15 +56,19 @@ export const routesMember: ApiDefinition[] = [
       required: [],
       properties: memberPublicType,
     },
-    workerAuthed: (user, body: Partial<{account: string, role:string}>, pId, mId) => {
-      guard(user,admin, projectMember(pId));
+    workerAuthed: (
+      user,
+      body: Partial<{ account: string; role: string }>,
+      pId,
+      mId
+    ) => {
+      guard(user, admin, projectMember(pId));
       // todo: i think this is wrong
-        return { id: DataService.i.setMember(user.id,pId ? pId : null, body)};
+      return { id: DataService.i.setMember(user.id, pId ? pId : null, body) };
     },
-  },
-  {
+  }),
+  routeAuthed("/{mId}", {
     method: "delete",
-    path: "/:mId",
     description: "delete a member",
     parameters: [
       _projectParam,
@@ -78,9 +80,9 @@ export const routesMember: ApiDefinition[] = [
         type: "string",
       },
     ],
-    workerAuthed: (user,pId, mId) => {
-      guard(user,admin, projectMember(pId));
-      return DataService.i.deleteMember(user.id,pId, mId);
+    workerAuthed: (user, pId, mId) => {
+      guard(user, admin, projectMember(pId));
+      return DataService.i.deleteMember(user.id, pId, mId);
     },
-  },
+  }),
 ];

@@ -1,17 +1,23 @@
+import { ApiFilters } from "../shared";
 import { showToast } from "../util";
 import { CtrlBit, WorkerControl } from "../util/bit/ctrl_bit";
 import { ViewConfig } from "../util/viz/v_viz";
 
 type Inputs = {
-  config: ViewConfig;
+  config: ViewConfig | null;
   onChange: (v: ViewConfig) => any;
 };
 type Data = ViewConfig;
 
 export const initial: ViewConfig = {
-  filter: {
-    date_from: Date.now() - 30 * 24 * 60 * 60 * 1000,
-  },
+  filter: [
+    {
+      local: false,
+      field: "meta.created_at",
+      operator: ">",
+      value: Date.now() - 30 * 24 * 60 * 60 * 1000,
+    },
+  ],
   views: {
     log: {
       vizs: [{ id: "chartTime" }, { id: "loglist" }],
@@ -21,6 +27,7 @@ export const initial: ViewConfig = {
     },
     event: {
       vizs: [
+        { id: "overview_graph", options: {} },
         { id: "chartTime", options: {} },
         { id: "keystats" },
         { id: "map" },
@@ -35,29 +42,10 @@ function _sameId(v: { id: string }, id: string) {
 
 class Ctrl extends WorkerControl<Inputs, Data> {
   async worker(): Promise<ViewConfig> {
-    return this._validate(this.p.config);
-  }
-
-  private _validate(d: any) {
-
-    if(!Number.isFinite(d.filter.date_from)) d.filter.date_from = null;
-    if(!Number.isFinite(d.filter.date_to)) d.filter.date_to = null;
-
-    // validate filter
-    if (
-      !d.filter.date_from ||
-      d.filter.date_from > (d.filter.date_to ?? Date.now())
-    ) {
-      d.filter.date_from = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    }
-
-    
-
-    return d;
+    return Array.isArray(this.p.config ?? 0) ? this.p.config : initial;
   }
 
   private _emit(d: any) {
-    d = this._validate(d);
     this.p.onChange(d);
     this.bit.emit({ ...d, _key: ((d._key ?? 0) + 1) % 1000 });
   }
@@ -99,14 +87,17 @@ class Ctrl extends WorkerControl<Inputs, Data> {
     });
   }
 
-  setFilter(key: string, value: any) {
+  setFilter(filter: ApiFilters) {
     this.act(async (d) => {
-      const f = { ...d.filter };
-
-      if (value === null) delete f[key];
-      else f[key] = value;
-      this._emit({ ...d, filter: f });
+      this._emit({
+        ...d,
+        filter: filter.filter((f) => (f as any).value != null),
+      });
     });
+  }
+
+  addFilter(...items: ApiFilters) {
+    this.act(async (d) => this.setFilter([...d.filter, ...items]));
   }
 
   setOption(

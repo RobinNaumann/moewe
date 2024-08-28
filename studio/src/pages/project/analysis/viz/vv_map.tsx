@@ -1,12 +1,13 @@
-import WorldMap, { CountryContext } from "react-svg-worldmap";
-import { ApiEvent, EventsBit } from "../../../bit/b_events";
-import { appInfo } from "../../../app";
-import { useCallback } from "preact/compat";
-import chroma from "chroma-js";
 import { useSignal } from "@preact/signals";
+import chroma from "chroma-js";
 import { Eye, MapIcon, XIcon } from "lucide-react";
-import { Visualization } from "../../../util/viz/v_viz";
+import { useCallback } from "preact/compat";
+import WorldMap, { CountryContext } from "react-svg-worldmap";
+import { appInfo } from "../../../../app";
+import { ApiEvent } from "../../../../shared";
+import { Visualization, VizContext } from "../../../../util/viz/v_viz";
 
+type _Ctxt = VizContext<ApiEvent, {}>;
 export const mapViz: Visualization<{}> = {
   id: "map",
   types: "all",
@@ -14,10 +15,10 @@ export const mapViz: Visualization<{}> = {
   icon: <MapIcon />,
   options: [],
   defaults: {},
-  builder: (data) => <_MapViz events={data.entries} />,
+  builder: (c) => <_MapViz c={c} />,
 };
 
-function _MapViz({ events }: { events: ApiEvent[] }) {
+function _MapViz({ c }: { c: _Ctxt }) {
   const countrySig = useSignal<any>(null);
 
   const clickAction = useCallback(
@@ -27,10 +28,7 @@ function _MapViz({ events }: { events: ApiEvent[] }) {
     []
   );
 
-  const getStyle = ({
-    countryValue,
-    maxValue,
-  }: CountryContext) => {
+  const getStyle = ({ countryValue, maxValue }: CountryContext) => {
     const colorScale = chroma
       .scale(["#00000022", appInfo.style.accentColor])
       .mode("lch");
@@ -44,7 +42,7 @@ function _MapViz({ events }: { events: ApiEvent[] }) {
     };
   };
 
-  const countryData = events.reduce((p, ev) => {
+  const countryData = c.events.reduce((p, ev) => {
     if (ev.meta.location.country) {
       const country = p.find((c) => c.country === ev.meta.location.country);
       if (country) {
@@ -58,24 +56,42 @@ function _MapViz({ events }: { events: ApiEvent[] }) {
 
   return (
     <div class="column cross-center">
-     
-     <div style="margin: -40px 0">
-      <WorldMap
-        data={countryData}
-        color={appInfo.style.accentColor}
-        backgroundColor="transparent"
-        valuePrefix=":"
-        valueSuffix=" events"
-        size={500}
-        styleFunction={getStyle}
-        onClickFunction={clickAction}
-      />
+      <div style="margin: -40px 0">
+        <WorldMap
+          data={countryData}
+          color={appInfo.style.accentColor}
+          backgroundColor="transparent"
+          valuePrefix=":"
+          valueSuffix=" events"
+          size={500}
+          styleFunction={getStyle}
+          onClickFunction={clickAction}
+        />
       </div>
 
       <_CityList
         country={countrySig.value}
-        events={events}
+        events={c.events}
         onClose={() => (countrySig.value = null)}
+        onSelect={(city) => {
+          c.setFilter(
+            [
+              {
+                local: false,
+                field: "meta.location.city",
+                operator: "=",
+                value: city,
+              },
+              {
+                local: false,
+                field: "meta.location.country",
+                operator: "=",
+                value: countrySig.value.code,
+              },
+            ],
+            true
+          );
+        }}
       />
       <span class="text-s" style={"text-align: end; width: 100%"}>
         resolved with a local copy of{" "}
@@ -91,10 +107,12 @@ function _CityList({
   country,
   events,
   onClose,
+  onSelect,
 }: {
   country: { code: string; name: string } | null;
   events: ApiEvent[];
   onClose?: () => void;
+  onSelect?: (city: string) => void;
 }) {
   if (!country) return null;
 
@@ -139,6 +157,7 @@ function _CityList({
               <button
                 class="integrated
               "
+                onClick={() => onSelect(ev.city)}
               >
                 <Eye /> view
               </button>

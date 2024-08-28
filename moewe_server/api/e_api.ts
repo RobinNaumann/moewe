@@ -1,28 +1,29 @@
-import { ApiDefinition, grouped } from "../server/docu";
+import { DonauRoute, grouped } from "donau";
+import { AuthUser } from "../service/s_auth";
 import { routesAccount } from "./e_account";
 import { routesAuth } from "./e_auth";
-import { routesLog } from "./e_log";
-import { routesProject } from "./e_project";
+import { routesLegal } from "./e_legal";
 import { routesManage } from "./e_manage";
+import { routesProject } from "./e_project";
+import { routesUse } from "./e_use";
 
-export const apiRoutes: ApiDefinition[] = [
+export const apiRoutes: DonauRoute<AuthUser>[] = [
   {
     method: "get",
     path: "/",
     tags: ["root"],
     description: "a welcome message",
-    handler: (req,res) => {
+    handler: (req, res) => {
       const ip = (req as any).socketInfo?.remoteAddress;
       res.send(welcome);
     },
   },
-  ...grouped( routesAuth, {prefix: "/auth",tags:["auth"]}),
-  ...grouped( routesAccount, {prefix:"/account",tags:["account"]}),
-  ...grouped( routesProject, {prefix:"/project",tags:["project"]}),
-  ...grouped(routesLog, {prefix:"/log",tags:["log"]}),
-  ...grouped(routesManage, {prefix:"/manage",tags:["manage"]}),
-  
-
+  ...grouped(routesAuth, { prefix: "/auth", tags: ["auth"] }),
+  ...grouped(routesAccount, { prefix: "/account", tags: ["account"] }),
+  ...grouped(routesProject, { prefix: "/project", tags: ["project"] }),
+  ...grouped(routesUse, { prefix: "/use/:projectId/:appId", tags: ["log"] }),
+  ...grouped(routesManage, { prefix: "/manage", tags: ["manage"] }),
+  ...grouped(routesLegal, { prefix: "/legal", tags: ["legal"] }),
 ];
 
 // welcome message for root path

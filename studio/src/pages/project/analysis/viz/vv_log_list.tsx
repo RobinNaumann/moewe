@@ -1,19 +1,15 @@
+import { useSignal } from "@preact/signals";
 import {
   AlertOctagon,
   AlertTriangle,
   Bug,
   CircleHelp,
-  MapIcon,
   Scroll,
   XIcon,
 } from "lucide-react";
-import { ApiEvent } from "../../../bit/b_events";
-import { humanId } from "../../../util/u_hash_to_human";
-import { Signal, signal, useSignal } from "@preact/signals";
-import { createContext } from "preact";
-import { useContext } from "preact/hooks";
-import { ViewBit } from "../../../bit/b_view";
-import { Visualization } from "../../../util/viz/v_viz";
+import { ApiEvent } from "../../../../shared";
+import { humanId } from "../../../../util/u_hash_to_human";
+import { Visualization } from "../../../../util/viz/v_viz";
 
 const types = {
   debug: {
@@ -47,7 +43,7 @@ const _defaultOpts = {
   showTime: true,
   showSession: true,
   chosenType: null as string,
-  chosenSession: null as string
+  chosenSession: null as string,
 };
 
 export const loglistViz: Visualization<typeof _defaultOpts> = {
@@ -76,19 +72,20 @@ export const loglistViz: Visualization<typeof _defaultOpts> = {
       label: "selected Session",
       type: "string",
     },
-    
   ],
   defaults: _defaultOpts,
-  builder: (data,o,setO) => <_Viz setOption={setO} options={o} events={data.entries} />,
+  builder: (c) => (
+    <_Viz setOption={c.setOption} options={c.options} events={c.events} />
+  ),
 };
 
 function _Viz({
   options,
   events,
-  setOption
+  setOption,
 }: {
   options: typeof _defaultOpts;
-  setOption: (key:string, value: any) => any,
+  setOption: (key: string, value: any) => any;
   events: ApiEvent[];
 }) {
   function filtered() {
@@ -102,22 +99,29 @@ function _Viz({
 
   return (
     <div class="column cross-stretch-fill">
-      
-      {(options.chosenType || options.chosenSession) && <div class="row">
-        {options.chosenType && (
-          <button onClick={() => setOption("chosenType",null)} class="action">
-            <XIcon /> {options.chosenType}
-          </button>
-        )}
-        {options.chosenSession && (
-          <button onClick={() => setOption("chosenSession",null)} class="action">
-            <XIcon /> {humanId(options.chosenSession)}
-          </button>
-        )}
-      </div>}
+      {(options.chosenType || options.chosenSession) && (
+        <div class="row">
+          {options.chosenType && (
+            <button
+              onClick={() => setOption("chosenType", null)}
+              class="action"
+            >
+              <XIcon /> {options.chosenType}
+            </button>
+          )}
+          {options.chosenSession && (
+            <button
+              onClick={() => setOption("chosenSession", null)}
+              class="action"
+            >
+              <XIcon /> {humanId(options.chosenSession)}
+            </button>
+          )}
+        </div>
+      )}
       <div class="column cross-stretch-fill gap-quarter">
         {filtered().length == 0 && <div>no logs found</div>}
-        {filtered().map((v) => _LogEntry({setOption, options, event: v }))}
+        {filtered().map((v) => _LogEntry({ setOption, options, event: v }))}
       </div>
     </div>
   );
@@ -129,7 +133,7 @@ function _LogEntry({
   event,
 }: {
   options: typeof _defaultOpts;
-  setOption: (key:string, value: any) => any,
+  setOption: (key: string, value: any) => any;
   event: ApiEvent;
 }) {
   const openSig = useSignal(false);
@@ -144,7 +148,7 @@ function _LogEntry({
               outlineOffset: "0.25rem",
               borderRadius: "0.125rem",
               outline: "1px solid #00000033",
-              paddingBottom: "0.125rem"
+              paddingBottom: "0.125rem",
             }
           : {}),
       }}
@@ -152,7 +156,7 @@ function _LogEntry({
       <div
         onClick={(e) => {
           e.stopPropagation();
-          setOption("chosenType",event.key)
+          setOption("chosenType", event.key);
         }}
       >
         <_TypeView type={event.key} />
@@ -169,7 +173,7 @@ function _LogEntry({
             }}
             onClick={(e) => {
               e.stopPropagation();
-              setOption("chosenSession",event.meta.session)
+              setOption("chosenSession", event.meta.session);
             }}
           >
             {humanId(event.meta.session)}
@@ -185,7 +189,6 @@ function _LogEntry({
           overflow: "hidden",
           whiteSpace: openSig.value ? "pre-wrap" : "nowrap",
         }}
-       
       >
         {event.data.msg ?? "-"}
       </div>
@@ -216,7 +219,7 @@ function _DateView({ time }: { time: number }) {
 function _TypeView({ type }: { type: string }) {
   let t = types[type.toLowerCase()] ?? null;
 
-  if (t == null) t = types.unknown
+  if (t == null) t = types.unknown;
 
   return (
     <div

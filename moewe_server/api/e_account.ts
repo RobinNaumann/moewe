@@ -1,19 +1,16 @@
-import { ApiDefinition } from "../server/docu";
+import { DonauRoute, err, routeAuthed } from "donau";
 import { Account, accountType, isAdmin } from "../service/model/m_account";
-import { DataService } from "../service/s_data";
-import { err } from "../tools/error";
+import { AccountService } from "../service/s_account";
+import { AuthUser } from "../service/s_auth";
 
-
-
-export const routesAccount: ApiDefinition[] = [
-  {
-    path: "/list",
+export const routesAccount: DonauRoute<AuthUser>[] = [
+  routeAuthed("/list", {
     description: "get a list of accounts",
-    workerAuthed: (_) => DataService.i.listAccounts(null, 1, 100),
-  },
-  {
+    workerAuthed: (_) => AccountService.i.list(null, 1, 100),
+  }),
+
+  routeAuthed("/{aId}?", {
     method: "post",
-    path: "/:aId?",
     description: "set a account model",
     parameters: [
       {
@@ -30,12 +27,13 @@ export const routesAccount: ApiDefinition[] = [
       properties: accountType,
     },
     workerAuthed: (user, body: Partial<Account>, aId) => {
-      const id = DataService.i.setAccount(aId, body);
+      if (aId && user.id != aId && !isAdmin(user))
+        throw err.notAllowed("you can only set your own account");
+      const id = AccountService.i.set(aId, body);
       return { id: id };
     },
-  },
-  {
-    path: "/:aId",
+  }),
+  routeAuthed("/{aId}", {
     description: "get a single account",
     parameters: [
       {
@@ -48,13 +46,16 @@ export const routesAccount: ApiDefinition[] = [
     ],
     workerAuthed: (user, aId) => {
       const adm = isAdmin(user);
-      if (user.id != aId && !adm) throw err.notAllowed("you can only get your own account. " + `You are${adm ? "" : " not"} an admin.`);
-      return DataService.i.getAccount(aId);
+      if (user.id != aId && !adm)
+        throw err.notAllowed(
+          "you can only get your own account. " +
+            `You are${adm ? "" : " not"} an admin.`
+        );
+      return AccountService.i.get(aId);
     },
-  },
-  {
+  }),
+  routeAuthed("/{aId}", {
     method: "delete",
-    path: "/:aId",
     description: "delete a single account",
     parameters: [
       {
@@ -68,8 +69,8 @@ export const routesAccount: ApiDefinition[] = [
     workerAuthed: (user, aId) => {
       if (user.id != aId && !isAdmin(user))
         throw err.notAllowed("you can only delete your own account");
-      DataService.i.deleteAccount(aId);
+      AccountService.i.delete(aId);
       return { message: "account deleted" };
     },
-  },
+  }),
 ];

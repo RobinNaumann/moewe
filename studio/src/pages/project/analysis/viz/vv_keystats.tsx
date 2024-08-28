@@ -1,6 +1,7 @@
 import { LayoutGrid } from "lucide-react";
-import { ApiEvent, EventsBit } from "../../../bit/b_events";
-import { Visualization } from "../../../util/viz/v_viz";
+import { ApiEvent } from "../../../../shared";
+import { EventGroup, groupBy } from "../../../../util/event_util";
+import { Visualization } from "../../../../util/viz/v_viz";
 
 const defaultOptions = {
   event_count: true,
@@ -43,25 +44,8 @@ export const keystatsViz: Visualization<typeof defaultOptions> = {
     },
   ],
   defaults: defaultOptions,
-  builder: (data,o) => <KeyStatsViz options={o} events={data.entries} />,
+  builder: (c) => <KeyStatsViz options={c.options} events={c.events} />,
 };
-
-interface ItemGroup<K> {
-  key: string;
-  items: K[];
-}
-
-type EventGroup = ItemGroup<ApiEvent>;
-
-function groupBy(events: ApiEvent[], f: (e: ApiEvent) => string): EventGroup[] {
-  const items = events.reduce((p, ev) => {
-    const key = f(ev);
-    const item = p.find((s) => s.key === key);
-    item ? item.items.push(ev) : p.push({ key: key, items: [ev] });
-    return p;
-  }, []);
-  return items;
-}
 
 function platforms(events: ApiEvent[]): EventGroup[] {
   return groupBy(events, (e) => e.meta.device.platform);
@@ -79,39 +63,32 @@ function keys(events: ApiEvent[]): EventGroup[] {
   return groupBy(events, (e) => e.key);
 }
 
-
-function KeyStatsViz({ options, events }: { options: typeof defaultOptions, events: ApiEvent[]}) {  
+function KeyStatsViz({
+  options,
+  events,
+}: {
+  options: typeof defaultOptions;
+  events: ApiEvent[];
+}) {
   return (
-        <div class="row wrap main-center">
-          {options.event_count && (
-            <_LargeStat label="events" value={events.length} />
-          )}
-          {options.session_count && (
-            <_LargeStat
-              label="sessions"
-              value={sessions(events).length}
-            />
-          )}
-          {options.platform_count && (
-            <_LargeStat
-              label="platforms"
-              value={platforms(events).length}
-            />
-          )}
-          {options.country_count && (
-            <_LargeStat
-              label="countries"
-              value={countries(events).length}
-            />
-          )}
-          {options.keys_count && (
-            <_LargeStat label="keys" 
-            value={keys(events).length} />
-          )}
-        </div>
-      );
-  
-
+    <div class="row wrap main-center">
+      {options.event_count && (
+        <_LargeStat label="events" value={events.length} />
+      )}
+      {options.session_count && (
+        <_LargeStat label="sessions" value={sessions(events).length} />
+      )}
+      {options.platform_count && (
+        <_LargeStat label="platforms" value={platforms(events).length} />
+      )}
+      {options.country_count && (
+        <_LargeStat label="countries" value={countries(events).length} />
+      )}
+      {options.keys_count && (
+        <_LargeStat label="keys" value={keys(events).length} />
+      )}
+    </div>
+  );
 }
 
 function _LargeStat({ label, value }: { label: string; value: number }) {

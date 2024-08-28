@@ -195,27 +195,27 @@ a:visited {
   }
 }
 
-.t-row {
-  min-height: 4rem;
+.highlightable {
+  &:hover {
+    background-color: #00000010;
+    margin: 0 -0.5rem;
+    padding: 0 0.5rem;
+    border-radius: 0.5rem;
 
-  &.highlightable {
-    &:hover {
-      background-color: #00000010;
-      margin: 0 -0.5rem;
-      padding: 0 0.5rem;
-      border-radius: 0.5rem;
-
-      .secondary{
-        background-color: white;
-      }
+    .secondary {
+      background-color: white;
     }
   }
+}
+
+.t-row {
+  min-height: 4rem;
 }
 
 $live_c: #3535ea;
 $live_o: 0.5;
 
-.live-label{
+.live-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -223,7 +223,7 @@ $live_o: 0.5;
   color: rgba($live_c, $live_o * 1.1);
 }
 
-.live-dot{
+.live-dot {
   width: 1.2rem;
   height: 1.2rem;
   border-radius: 100%;
@@ -231,8 +231,7 @@ $live_o: 0.5;
   margin-right: 0.5rem;
   outline: 0.5rem solid rgba($live_c, 0.5 * $live_o);
 
-
-  &.offline{
+  &.offline {
     background-color: red;
   }
 
@@ -255,34 +254,36 @@ $live_o: 0.5;
       outline-color: rgba($live_c, 0.5 * $live_o);
       outline-width: 0.5rem;
     }
-    
   }
 }
 
-.wrap{
+.wrap {
   flex-wrap: wrap;
 }
 
-.viz{
+.viz {
   max-height: 50rem;
-  .viz-actions{
+  .viz-actions {
     visibility: hidden;
   }
 
-  &:hover{
-    .viz-actions{
+  &:hover {
+    .viz-actions {
       visibility: visible;
     }
   }
 }
 
-.grid{
+.grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%,30rem), 1fr)); /* see notes below */
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(min(100%, 30rem), 1fr)
+  ); /* see notes below */
   grid-gap: 1em;
 }
 
-.chip{
+.chip {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -293,19 +294,41 @@ $live_o: 0.5;
   cursor: pointer;
   transition: background-color 0.5s;
 
-  &:hover{
+  &:hover {
     background-color: #00000020;
   }
 }
 
-.transed{
+.transed {
   transition: all 0.3s;
 }
 
-.transed-width{
+.transed-width {
   transition: width 0.3s;
 }
 
-.transed-min-height{
+.transed-min-height {
   transition: min-height 0.3s;
+}
+
+.live-pulse {
+  background: linear-gradient(
+    0deg,
+    #3535ea10,
+    #3535ea10,
+    #3535ea30,
+    #3535ea10,
+    #3535ea10
+  );
+  background-size: 100% 500%;
+  animation: live_pulse_gradient 4s ease infinite;
+}
+
+@keyframes live_pulse_gradient {
+  0% {
+    background-position: 50% 0%;
+  }
+  100% {
+    background-position: 50% 100%;
+  }
 }

@@ -1,74 +1,34 @@
+import { err } from "donau";
 import { tables } from "../server/tables";
-import { err } from "../tools/error";
-import { Account } from "./model/m_account";
+import { ApiEvent } from "../shared";
 import { App } from "./model/m_app";
 import { DbEvent, parseEvent } from "./model/m_event";
 import { Project } from "./model/m_project";
-import { AuthService, AuthUser } from "./s_auth";
+import { AccountService } from "./s_account";
 import { DbFilter, DbService } from "./s_db";
+
+export interface PrepParam {
+  query: string;
+  values: { [key: string]: any };
+}
+
+export function paramOr(params: PrepParam[]): PrepParam {
+  const q = params.map((p) => `(${p.query})`).join(" OR ");
+  const v = params.reduce((p, e) => ({ ...p, ...e.values }), {});
+  return { query: q, values: v };
+}
 
 export class DataService {
   static readonly i = new DataService();
 
   private constructor() {}
 
-  // ============== Account ==============
-
-  /** Add a new user to the sqlite database at /db/data.db
-   * @param username The username of the user
-   * @param password The password of the user
-   **/
-  setAccount(id: string | null, account: Partial<Account>): string {
-    const data: any = { ...account, verified: undefined };
-
-    if(!data) throw err.badRequest("no data provided");
-
-    if (data.password) {
-      data.pw_salt = AuthService.i.generateSalt();
-      data.pw_hash = AuthService.i.hashPassword(data.password, data.pw_salt);
-    }
-
-    return DbService.i.set(tables.account, id, data);
-  }
-
-  /** Get the data of an account
-   * @param id The id of the account
-   */
-  getAccount(id: string): Account {
-    return DbService.i.get(tables.account, id);
-  }
-
-  getAccountByEmail(email: string): Account {
-    return DbService.i.getQuery(tables.account, {
-      where: "email = $email",
-      params: { $email: email },
-    });
-  }
-
-  /** set the status of an account to verified
-   * @param id The id of the account
-   */
-  verifyAccount(id: string) {
-    DbService.i.set(tables.account, id, { verified: true });
-  }
-
-  listAccounts(filter: any, page: number, pageSize: number) {
-    return DbService.i.list(tables.account, filter, page, pageSize);
-  }
-
-  deleteAccount(id: string) {
-    DbService.i.delete(tables.account, id);
-  }
-
   // ============== Project ==============
-
-  
 
   setProject(userId: string, id: string | null, project: Partial<Project>) {
     project.config = JSON.stringify(project.config);
     // Update an existing project
     if (id) {
-      
       project.created_at = undefined;
       return DbService.i.set(tables.project, id, project);
     }
@@ -118,8 +78,6 @@ export class DataService {
 
   // ============== Project ==============
 
-  
-
   setApp(id: string | null, app: Partial<App>) {
     return DbService.i.set(tables.app, id, app);
   }
@@ -132,11 +90,16 @@ export class DataService {
     return DbService.i.get(tables.app, id);
   }
 
-  listApps(projectId:string, page: number, pageSize: number) {
-    return DbService.i.list(tables.app, {
-      where: "project = $project",
-      params: { $project: projectId },
-    }, page, pageSize);
+  listApps(projectId: string, page: number, pageSize: number) {
+    return DbService.i.list(
+      tables.app,
+      {
+        where: "project = $project",
+        params: { $project: projectId },
+      },
+      page,
+      pageSize
+    );
   }
 
   // ============== EVENT ==============
@@ -145,19 +108,28 @@ export class DataService {
     return parseEvent(DbService.i.get(tables.event, id));
   }
 
-  listEvent(projectId:string, type:string | null, page: number, pageSize: number, params: {query: string, values:{[key: string]: any}}[] = []) {
+  listEvent(
+    projectId: string,
+    type: string | null,
+    page: number,
+    pageSize: number,
+    params: PrepParam[] = []
+  ): ApiEvent[] {
     const filter: DbFilter = {
       query: `SELECT *
       FROM event
       JOIN app a ON app = a.id
-      WHERE a.project = $project ${type ? "AND type = $type" : ""} ${params.map(p => `AND ${p.query}`).join(" ")}`,
+      WHERE a.project = $project ${type ? "AND type = $type" : ""} ${params
+        .map((p) => `AND ${p.query}`)
+        .join(" ")}`,
       params: {
         $project: projectId,
         $type: type,
-        ...params.reduce((p, e) => ({...p, ...e.values}), {})
-      }
-    }
-    return DbService.i.list(tables.event, filter, page, pageSize)
+        ...params.reduce((p, e) => ({ ...p, ...e.values }), {}),
+      },
+    };
+    return DbService.i
+      .list(tables.event, filter, page, pageSize)
       .map((e: DbEvent) => parseEvent(e));
   }
 
@@ -170,39 +142,57 @@ export class DataService {
     });
   }
 
-  setMember(userId: string, projectId: string, m:Partial<{account: string, role: string}>) {
-    DbService.i.set(tables.role, null, { ...m,project: projectId });
+  setMember(
+    userId: string,
+    projectId: string,
+    m: Partial<{ account: string; role: string }>
+  ) {
+    DbService.i.set(tables.role, null, { ...m, project: projectId });
   }
 
   deleteMember(userId: string, projectId: string, memberId: string) {
-    if(memberId == userId) throw err.notAllowed("cannot delete yourself from project");
-    
+    if (memberId == userId)
+      throw err.notAllowed("cannot delete yourself from project");
+
     DbService.i.deleteQuery(tables.role, {
       where: "project = $project AND account = $account",
       params: { $project: projectId, $account: memberId },
     });
   }
 
-  listMembersRich(userId: string, projectId: string, page: number, pageSize: number) {
-    return DbService.i.listQuery(
-      tables.role,
-      {
-        where: "project = $project",
-        params: { $project: projectId },
-      },
-      page,
-      pageSize
-    ).map((m: any) => {
-      try{
-      const a = this.getAccount(m.account);
-      return { ...m, account: a };
-      } catch(e) {
-        return null
-      }
-    }).filter((m: any) => m);
+  listMembersRich(
+    userId: string,
+    projectId: string,
+    page: number,
+    pageSize: number
+  ) {
+    return DbService.i
+      .listQuery(
+        tables.role,
+        {
+          where: "project = $project",
+          params: { $project: projectId },
+        },
+        page,
+        pageSize
+      )
+      .map((m: any) => {
+        try {
+          const a = AccountService.i.get(m.account);
+          return { ...m, account: a };
+        } catch (e) {
+          return null;
+        }
+      })
+      .filter((m: any) => m);
   }
 
-  listMembers(userId: string, projectId: string, page: number, pageSize: number) {
+  listMembers(
+    userId: string,
+    projectId: string,
+    page: number,
+    pageSize: number
+  ) {
     return DbService.i.listQuery(
       tables.role,
       {

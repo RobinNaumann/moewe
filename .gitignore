@@ -1,0 +1,3 @@
+/**/*.mmdb
+/studio/node_modules
+/moewe_server/node_modules

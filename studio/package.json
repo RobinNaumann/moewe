@@ -16,6 +16,7 @@
     "preact-iso": "^2.4.0",
     "preact-render-to-string": "^6.4.0",
     "preact-router": "^4.1.2",
+    "react-responsive-canvas": "^1.0.2",
     "react-svg-worldmap": "^2.0.0-alpha.16",
     "yaml": "^2.4.1"
   },

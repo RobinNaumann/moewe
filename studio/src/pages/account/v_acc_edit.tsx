@@ -1,33 +1,17 @@
 import { useSignal } from "@preact/signals";
-import { ApiAccount, DataService } from "../../service/s_data";
-import { ElbeDialog } from "../../elbe/components";
-import { showToast } from "../../util";
-import { AuthService } from "../../service/s_auth";
 import { Plus } from "lucide-react";
+import { ElbeDialog } from "../../elbe/components";
+import { ApiAccount, DataService } from "../../service/s_data";
+import { showToast } from "../../util";
 
-export function CreateAccountButton({
-  viaAdmin,
-  onChanged,
-}: {
-  viaAdmin?: boolean;
-  onChanged?: () => {};
-}) {
+export function CreateAccountButton({ onChanged }: { onChanged?: () => {} }) {
   const editSig = useSignal<Partial<ApiAccount>>(null);
 
   async function createAccount(account: Partial<ApiAccount>) {
     try {
       const cl = { ...account, id: null };
-      if (viaAdmin) {
-        await DataService.i.setAccount(null, {...cl, privilege: 1});
-      } else {
-        if (!cl.email || !cl.password || !cl.name)
-          throw new Error("missing fields");
-        await AuthService.i.create({
-          email: cl.email,
-          password: cl.password,
-          name: cl.name,
-        });
-      }
+
+      await DataService.i.setAccount(null, { ...cl, privilege: 1 });
 
       editSig.value = null;
       showToast("your account was created");
@@ -41,7 +25,7 @@ export function CreateAccountButton({
     <div class="column cross-stretch">
       <button class="action" onClick={() => (editSig.value = {})}>
         <div class="row">
-          {viaAdmin && <Plus />}
+          <Plus />
           <div>create account</div>
         </div>
       </button>

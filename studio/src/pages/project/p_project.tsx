@@ -1,12 +1,12 @@
-import { XIcon } from "lucide-react";
-import { ProjectBit } from "../../bit/b_project";
-import { Project } from "../../service/s_data";
 import { Signal, signal } from "@preact/signals";
-import { ViewBit, initial } from "../../bit/b_view";
-import { HeaderView } from "../v_header";
+import { XIcon } from "lucide-react";
 import { createContext } from "preact";
 import { useContext } from "preact/hooks";
-import { ProjectView, projectViews } from "./v_views";
+import { ProjectBit } from "../../bit/b_project";
+import { ViewBit } from "../../bit/b_view";
+import { Project } from "../../service/s_data";
+import { HeaderView } from "../v_header";
+import { ProjectView, projectViews } from "./analysis/v_views";
 
 export function ProjectPage({ id }: { id: string }) {
   return (
@@ -78,11 +78,10 @@ function _PagesView({}) {
 
   return pBit.map({
     onData: (p) => {
-      console.log(page.value);
       const view = projectViews[page.value as any];
       return (
         <ViewBit.Provide
-          config={p?.config?.view ?? initial}
+          config={p?.config?.view}
           onChange={(v) => pBit.ctrl.setView(v)}
         >
           {view?.builder?.(view.type) ?? <div>Not implemented</div>}
@@ -174,10 +173,14 @@ function _MenuItem({
       style={view.builder ? "" : "opacity: 0.5"}
       onClick={view.builder ? onClick : null}
     >
-      <div style={{
-        marginTop:  "0.25rem",
-        marginLeft: iconOnly ? "0" : "0.125rem",
-      }}>{view.icon()}</div>{" "}
+      <div
+        style={{
+          marginTop: "0.25rem",
+          marginLeft: iconOnly ? "0" : "0.125rem",
+        }}
+      >
+        {view.icon()}
+      </div>{" "}
       {iconOnly ? null : view.label}
     </button>
   );

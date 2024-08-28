@@ -1,8 +1,8 @@
+import { err } from "donau";
 import { tables } from "../server/tables";
 import { isAdmin } from "../service/model/m_account";
 import { AuthUser } from "../service/s_auth";
 import { DbService } from "../service/s_db";
-import { err } from "./error";
 
 export function guard(user: AuthUser, ...items: GuardItem[]) {
   if (!user) throw err.notAllowed("user not logged in");
@@ -42,11 +42,10 @@ export const admin: GuardItem = (user) =>
   isAdmin(user) ? null : { message: `user '${user.id}' is not an admin` };
 
 export function isNull(id: string): GuardItem {
-  return (_) => id != null ? { message: `id not expected` } : null;
+  return (_) => (id != null ? { message: `id not expected` } : null);
 }
 
 export function projectMember(id: string): GuardItem {
-  
   return (user) => {
     if (!id) return { message: `project id not set` };
     const res = DbService.i.getQuery(tables.role, {

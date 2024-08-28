@@ -1,47 +1,30 @@
-import { ApiDefinition } from "../server/docu";
+import { DonauRoute, routeAuthed } from "donau";
+import { AuthUser } from "../service/s_auth";
 import { DataService } from "../service/s_data";
+import { FilteredService } from "../service/s_filtered";
 import { admin, guard, projectMember } from "../tools/guard";
 import { projectPathParam } from "./e_app";
 
-export const routesEvent: ApiDefinition[] = [
-  {
-    path: "/list",
+export const routesEvent: DonauRoute<AuthUser>[] = [
+  routeAuthed("/filtered", {
+    method: "post",
     description: "get a list of all events of a project",
-    parameters: [
-      projectPathParam,
-      {
-        name: "type",
-        in: "query",
-        required: false,
-        description: "the type of the event",
+    parameters: [projectPathParam],
+    reqBody: {
+      description: "project data",
+      required: [],
+      properties: {
         type: "string",
+        filter: "object",
       },
-      {
-        name: "date_from",
-        in: "query",
-        required: false,
-        description: "the start of the date range (UnixMS)",
-        type: "integer",
-      },
-      {
-        name: "date_end",
-        in: "query",
-        required: false,
-        description: "the end of the date range (UnixMS)",
-        type: "integer",
-      },
-    ],
-    workerAuthed: (user, project, type, dateFrom, dateEnd) => {
-      guard(user, admin);
-      const filters = [];
-      if (dateFrom) filters.push({query: "created_at > $date_from",values: {$date_from: dateFrom}});
-      if (dateEnd) filters.push({query: "created_at <= $date_to",values: {$date_to: dateEnd}});
-
-      return DataService.i.listEvent(project, type, 1, 1000, filters);
     },
-  },
-  {
-    path: "/:eId",
+    workerAuthed: (user, body, project) => {
+      guard(user, admin, projectMember(project));
+      return FilteredService.i.events(project, body.type, body.filter);
+    },
+  }),
+
+  routeAuthed("/{eId}", {
     description: "get a single event",
     parameters: [
       projectPathParam,
@@ -57,5 +40,5 @@ export const routesEvent: ApiDefinition[] = [
       guard(user, admin, projectMember(pId));
       return DataService.i.getEvent(id);
     },
-  },
+  }),
 ];

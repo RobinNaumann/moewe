@@ -1,6 +1,7 @@
-import { ApiDefinition, ApiParameter } from "../server/docu";
+import { ApiParameter, DonauRoute, routeAuthed } from "donau";
 import { guardAdmin } from "../service/model/m_account";
 import { App, appType } from "../service/model/m_app";
+import { AuthUser } from "../service/s_auth";
 import { DataService } from "../service/s_data";
 import { admin, guard, isNull, projectMember } from "../tools/guard";
 
@@ -12,9 +13,8 @@ export const projectPathParam: ApiParameter = {
   type: "string",
 };
 
-export const routesApp: ApiDefinition[] = [
-  {
-    path: "/list",
+export const routesApp: DonauRoute<AuthUser>[] = [
+  routeAuthed("/list", {
     parameters: [
       projectPathParam,
       {
@@ -28,11 +28,10 @@ export const routesApp: ApiDefinition[] = [
     description: "get a list of all apps within the project",
     workerAuthed: (user, project) => {
       guardAdmin(user);
-      return DataService.i.listApps(project, 1, 100);}
-  },
-  {
-    method: "get",
-    path: "/:appId",
+      return DataService.i.listApps(project, 1, 100);
+    },
+  }),
+  routeAuthed("/{appId}", {
     description: "get an app by id",
     parameters: [
       projectPathParam,
@@ -44,14 +43,13 @@ export const routesApp: ApiDefinition[] = [
         type: "string",
       },
     ],
-    workerAuthed:(user,_,id) => {
-      guard(user,admin, projectMember(id));
+    workerAuthed: (user, _, id) => {
+      guard(user, admin, projectMember(id));
       return DataService.i.getApp(id);
     },
-  },
-  {
+  }),
+  routeAuthed("/{appId}?", {
     method: "post",
-    path: "/:appId?",
     description: "set/create the details of an app",
     parameters: [
       projectPathParam,
@@ -68,17 +66,15 @@ export const routesApp: ApiDefinition[] = [
       required: [],
       properties: appType,
     },
-    workerAuthed: (user, body: Partial<App>,_, id) => {
+    workerAuthed: (user, body: Partial<App>, _, id) => {
       //TODO: check if user is member of project that the app belongs to
-      guard(user,admin, isNull(id));
-      return { id: DataService.i.setApp(id ? id : null, body)};
+      guard(user, admin, isNull(id));
+      return { id: DataService.i.setApp(id ? id : null, body) };
     },
-  },
-  
-  
-  {
+  }),
+
+  routeAuthed("/{appId}", {
     method: "delete",
-    path: "/:appId",
     description: "delete an app by id",
     parameters: [
       projectPathParam,
@@ -90,10 +86,10 @@ export const routesApp: ApiDefinition[] = [
         type: "string",
       },
     ],
-    workerAuthed:(user,_,id) => {
+    workerAuthed: (user, _, id) => {
       //TODO: check if user is member of project that the app belongs to
-      guard(user,admin);
+      guard(user, admin);
       DataService.i.deleteApp(id);
     },
-  },
+  }),
 ];

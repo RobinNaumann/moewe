@@ -1,25 +1,25 @@
-import { Component, render } from "preact";
-import "../style/elbe/elbe.scss";
-import "../style/google.scss";
-import "../style/base.scss";
 import { Loader2 } from "lucide-react";
+import { Component, render } from "preact";
 import { Route, Router, route } from "preact-router";
 import { useEffect } from "preact/hooks";
+import "../style/base.scss";
+import "../style/elbe/elbe.scss";
+import "../style/google.scss";
 import { AuthBit } from "./bit/b_auth";
-import { AuthService, AuthState } from "./service/s_auth";
-import { HeaderView } from "./pages/v_header";
 import { FooterView } from "./elbe/v_footer";
+import { AccountPage } from "./pages/account/p_account";
+import { AdminToolsPage } from "./pages/admin/p_admin_tools";
 import { LoginView } from "./pages/login/p_login";
 import { HomePage } from "./pages/p_home";
 import { ProjectPage } from "./pages/project/p_project";
-import { useSignal } from "@preact/signals";
-import { AccountPage } from "./pages/account/p_account";
-import { AdminToolsPage } from "./pages/admin/p_admin_tools";
+import { SignupPage } from "./pages/signup/p_signup";
+import { AuthService, AuthState } from "./service/s_auth";
 
 function _Router({}) {
   return (
     <Router>
       <Route path="/login" component={LoginView} />
+      <Route path="/signup" component={SignupPage} />
       <ProtectedRoute path="/" component={HomePage} />
       <ProtectedRoute path="/project/:id" component={ProjectPage} />
       <ProtectedRoute path="/account/:id" component={AccountPage} />

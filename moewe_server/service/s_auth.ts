@@ -1,27 +1,26 @@
 import crypto from "crypto";
-import { appInfo } from "../app";
+import { err, sendError } from "donau";
 import jwt from "jsonwebtoken";
-import { DataService } from "./s_data";
-import { err, sendError } from "../tools/error";
-
+import { appInfo } from "../app";
+import { AccountService } from "./s_account";
 
 export const userPrivileges = {
   guest: {
     id: 0,
     name: "guest",
-    color: "#330000"
+    color: "#330000",
   },
   user: {
     id: 1,
     name: "user",
-    color: "#550000"
+    color: "#550000",
   },
   admin: {
     id: 100,
     name: "admin",
-    color: "#990000"
-  
-  }}
+    color: "#990000",
+  },
+};
 
 export interface AuthUser {
   id: string;
@@ -32,8 +31,7 @@ export interface AuthUser {
 
 export class AuthService {
   static readonly i = new AuthService();
-  private constructor() {
-  }
+  private constructor() {}
 
   public comparePasswords(password: string, hash: string, salt: string) {
     return hash === this.hashPassword(password, salt);
@@ -42,7 +40,12 @@ export class AuthService {
   public hashPassword(password: string, salt: string) {
     return this.hash(password, salt, 128, 10000);
   }
-  public hash(value: string, salt: string, length: number = 16, rounds: number = 100) {
+  public hash(
+    value: string,
+    salt: string,
+    length: number = 16,
+    rounds: number = 100
+  ) {
     return crypto
       .pbkdf2Sync(value, salt, rounds, length, "sha512")
       .toString("hex");
@@ -51,11 +54,13 @@ export class AuthService {
     return crypto.randomBytes(32).toString("hex");
   }
 
+  public generate6DigitCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
   public middleware(req: any, res: any, next: any) {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(" ")[1] || req.cookies?.token;
-
-    
 
     if (!token) {
       sendError(res, err.notAuthorized("no token provided"));
@@ -70,7 +75,7 @@ export class AuthService {
   }
 
   public login(email: string, password: string): string {
-    const acc = DataService.i.getAccountByEmail(email);
+    const acc = AccountService.i.getByEmail(email);
     if (!acc?.pw_hash || !acc?.pw_salt)
       throw err.notAuthorized("User not found");
 
@@ -81,7 +86,12 @@ export class AuthService {
     }
 
     return jwt.sign(
-      { id: acc.id, name: acc.name, email: acc.email, privilege: acc.privilege } as AuthUser,
+      {
+        id: acc.id,
+        name: acc.name,
+        email: acc.email,
+        privilege: acc.privilege,
+      } as AuthUser,
       appInfo.auth.secret!
     );
   }

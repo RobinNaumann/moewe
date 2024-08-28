@@ -1,40 +1,12 @@
 import { DataService } from "../service/s_data";
-import { showToast } from "../util";
-import { CtrlBit, StreamControl, WorkerControl } from "../util/bit/ctrl_bit";
-import { ViewFilter } from "../util/viz/v_viz";
+import { ApiEvent, ApiFilters } from "../shared";
+import { log, showToast } from "../util";
+import { CtrlBit, StreamControl } from "../util/bit/ctrl_bit";
 
-
-interface _ApiEvent<T> {
-  id: string;
-  app: string;
-  type: string;
-  key: string | null;
-  meta: {
-    created_at: number;
-    session: string | null;
-    device: {
-      platform: string | null;
-      device: string | null;
-      version: string | null;
-    };
-    location: {
-      city: string | null;
-      country: string | null;
-      lat: number | null;
-      lon: number | null;
-    };
-  };
-  data: T;
-}
-export interface ApiEvent extends _ApiEvent<any> { }
-
-
-
-type Inputs = { project: string, type: string, filter: ViewFilter };
-type Data = { events: ApiEvent[], requestedAt: number, live: boolean };
+type Inputs = { project: string; type: string; filter: ApiFilters };
+type Data = { events: ApiEvent[]; requestedAt: number; live: boolean };
 
 class Ctrl extends StreamControl<Inputs, Data, number> {
-
   listen() {
     this._load();
     return setInterval(() => this._load(), 30 * 1000);
@@ -54,9 +26,15 @@ class Ctrl extends StreamControl<Inputs, Data, number> {
         if (!d.live) return;
         if (d.requestedAt > Date.now() - 20 * 1000) return;
       }
-      const events = await DataService.i.listEvent(this.p.project, { type: this.p.type, ...this.p.filter });
+      const events = await DataService.i.filteredEvent(
+        this.p.project,
+        this.p.type,
+        this.p.filter
+      );
+      if (events.length <= d?.events.length) {
+        log.debug("skip event update. no new events.");
+      }
       this.bit.emit({ events, requestedAt: Date.now(), live: d?.live ?? true });
-
     } catch (e) {
       this.bit.emitError(e);
     }

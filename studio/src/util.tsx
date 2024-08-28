@@ -1,9 +1,9 @@
-import { X, Edit2, HelpCircleIcon } from "lucide-react";
+import { Edit2, HelpCircleIcon, X } from "lucide-react";
 import pino from "pino";
-import YAML from "yaml";
 import { route } from "preact-router";
-import { useState } from "preact/hooks";
 import React from "preact/compat";
+import { useEffect, useRef, useState } from "preact/hooks";
+import YAML from "yaml";
 
 const language = navigator.language.substring(0, 2);
 
@@ -12,11 +12,20 @@ export const beeMovie =
 
 export const log = pino({ level: "trace" });
 
+export function first<T>(arr: T[]): T | null {
+  return arr.length > 0 ? arr[0] : null;
+}
+
+export function last<T>(arr: T[]): T | null {
+  return arr.length > 0 ? arr[arr.length - 1] : null;
+}
+
 export function clone(o: object) {
   return JSON.parse(JSON.stringify(o));
 }
 
-export function showDate(timestamp: number): string {
+export function showDate(timestamp: number | null): string {
+  if (timestamp == null) return "-";
   return new Date(timestamp).toLocaleDateString("de-DE");
 }
 
@@ -25,6 +34,23 @@ export function showDateShort(timestamp: number): string {
     month: "2-digit",
     day: "numeric",
   });
+}
+
+function hashCode(string: string): number {
+  var hash = 0;
+  if (string.length === 0) return hash;
+  for (let i = 0; i < string.length; i++) {
+    let chr = string.charCodeAt(i);
+    hash = (hash << 5) - hash + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return hash;
+}
+
+export function pastelColorFromString(string: string): string {
+  const hash = hashCode(string);
+  const hue = hash % 360;
+  return `hsl(${hue}, 30%, 85%)`;
 }
 
 export function imsg(languages: L10nMessage): string {
@@ -259,8 +285,74 @@ export function HelpHeader({
   return (
     <div class="row main-space-between">
       {" "}
-      {React.createElement(`h${level}`, { class: "margin-none flex-1", children: children })}
-      <button class="integrated" onClick={() => showConfirmDialog({okay: true, title: `<b><span style="font-weight: normal">info:</span> ${help.label}</b>`, message: help.body})}><HelpCircleIcon/></button>
+      {React.createElement(`h${level}`, {
+        class: "margin-none flex-1",
+        children: children,
+      })}
+      <button
+        class="integrated"
+        onClick={() =>
+          showConfirmDialog({
+            okay: true,
+            title: `<b><span style="font-weight: normal">info:</span> ${help.label}</b>`,
+            message: help.body,
+          })
+        }
+      >
+        <HelpCircleIcon />
+      </button>
     </div>
   );
+}
+
+export type ResCanvasSize = { width: number; height: number };
+
+function setPadding(
+  ctx: CanvasRenderingContext2D,
+  size: ResCanvasSize,
+  padding: number
+): ResCanvasSize {
+  padding = padding ?? 0;
+  ctx.translate(padding, padding);
+  return {
+    width: size.width - padding * 2,
+    height: size.height - padding * 2,
+  };
+}
+
+/**
+ * a canvas that resizes to its parent element
+ */
+export function ResCanvas({
+  height = 150,
+  draw,
+  padding = 0,
+}: {
+  height?: number;
+  draw: (ctx: CanvasRenderingContext2D, size: ResCanvasSize) => void;
+  padding?: number;
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = height ?? 150;
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const size = setPadding(
+          ctx,
+          { width: canvas.width, height: canvas.height },
+          padding
+        );
+        draw(ctx, size);
+      }
+    }
+  }, []);
+
+  return <canvas ref={canvasRef}></canvas>;
 }

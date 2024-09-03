@@ -41,4 +41,23 @@ export const routesEvent: DonauRoute<AuthUser>[] = [
       return DataService.i.getEvent(id);
     },
   }),
+
+  routeAuthed("/{eId}", {
+    method: "delete",
+    description: "get a single event",
+    parameters: [
+      projectPathParam,
+      {
+        name: "eId",
+        in: "path",
+        required: true,
+        description: "the id of the event",
+        type: "string",
+      },
+    ],
+    workerAuthed: (user, pId, id) => {
+      guard(user, admin, projectMember(pId));
+      return DataService.i.deleteEvent(id);
+    },
+  }),
 ];

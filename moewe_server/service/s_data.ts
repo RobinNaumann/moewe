@@ -116,9 +116,9 @@ export class DataService {
     params: PrepParam[] = []
   ): ApiEvent[] {
     const filter: DbFilter = {
-      query: `SELECT *
-      FROM event
-      JOIN app a ON app = a.id
+      query: `SELECT e.*
+      FROM event as e
+      JOIN app as a ON e.app = a.id
       WHERE a.project = $project ${type ? "AND type = $type" : ""} ${params
         .map((p) => `AND ${p.query}`)
         .join(" ")}`,
@@ -131,6 +131,10 @@ export class DataService {
     return DbService.i
       .list(tables.event, filter, page, pageSize)
       .map((e: DbEvent) => parseEvent(e));
+  }
+
+  deleteEvent(id: string) {
+    DbService.i.delete(tables.event, id);
   }
 
   // ============== PROJECT MEMBER ==============

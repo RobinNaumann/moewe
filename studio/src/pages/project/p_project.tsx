@@ -29,7 +29,7 @@ function _ProjectPage() {
             <div class="if-narrow">
               <_MenuDialog project={p} />
             </div>
-            <div class="row cross-stretch">
+            <div class="row cross-stretch gap-none">
               <_WideProjectMenu project={p} />
               <_PagesView />
             </div>
@@ -165,6 +165,7 @@ function _MenuItem({
 }) {
   return (
     <button
+      title={view.builder ? null : "not yet implemented"}
       class={
         (selected ? " loud minor " : " integrated ") +
         (iconOnly ? " centered " : " main-start ") +

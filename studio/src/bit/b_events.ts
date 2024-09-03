@@ -43,10 +43,11 @@ class Ctrl extends StreamControl<Inputs, Data, number> {
   async delete(id: string): Promise<void> {
     this.act(async (d) => {
       try {
-        await DataService.i.deleteEvent(id);
+        await DataService.i.deleteEvent(this.p.project, id);
         const events = d.events.filter((e) => e.id !== id);
         this.bit.emit({ ...d, events });
       } catch (e) {
+        console.error(e);
         showToast("Failed to delete event");
       }
     });

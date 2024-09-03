@@ -48,7 +48,7 @@ function _envInt(name: string, fallback?: number): number {
 
 export const appInfo = {
   name: "mœwe",
-  version: "0.0.1",
+  version: "0.2.4",
   description: "Server for the moewe app",
   server: {
     cors: corsOptions,
@@ -66,11 +66,6 @@ export const appInfo = {
   },
   docu: {
     host: _envString("SERVER_HOST", "localhost"),
-    info: {
-      title: "mœwe API",
-      version: "1.2.0",
-      description: "the API for the mœwe app",
-    },
   },
   email: {
     host: _envString("EMAIL_HOST"),
@@ -79,9 +74,11 @@ export const appInfo = {
   },
   config: {
     allowRegistration: process.env.ALLOW_USER_SIGNUP === "true" || false,
+    registrationSendCopy: _envBool("REGISTRATION_SEND_COPY", false),
     eventMaxSize: _envInt("EVENT_MAX_SIZE", 1000),
     projectMaxSize: _envInt("PROJECT_MAX_SIZE", 1000 * 1000 * 50),
     sessionTTL: _envInt("SESSION_TTL", 1000 * 60 * 60 * 1),
+    contactEmail: _envString("CONTACT_EMAIL"),
   },
 };
 

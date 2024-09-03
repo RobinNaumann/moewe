@@ -45,7 +45,7 @@ function _Viz({ c }: { c: VizContext<ApiEvent, typeof defaultOptions> }) {
       <_SessionViz group={selectSig.value} />
     </div>
   ) : (
-    <div class="column cross-stretch">
+    <div class="column cross-stretch pointer">
       {groups.map((v) => (
         <div
           class="row main-space-between highlightable"

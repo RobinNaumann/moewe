@@ -59,4 +59,12 @@ export const filterFields: FilterField[] = [
   { field: "meta.location.lon", type: "number" },
 ];
 
+export interface UserFeedback {
+  title: string;
+  message: string;
+  type: string;
+  open: boolean;
+  contact: string;
+}
 export interface ApiEvent extends _ApiEvent<any> {}
+export interface UserFeedbackEvent extends _ApiEvent<UserFeedback> {}

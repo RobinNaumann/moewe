@@ -31,7 +31,7 @@ function _UserFeedbackView({}) {
     return (
       <div class="column cross-stretch" style="margin-top: 2rem">
         {d.events.length === 0 && <div class="minor">No feedback yet</div>}
-        {d.events.map((e) => (
+        {[...d.events].reverse().map((e) => (
           <_FeedbackItem
             event={e}
             open={openSig.value === e.id}

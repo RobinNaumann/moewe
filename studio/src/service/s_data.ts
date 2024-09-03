@@ -91,8 +91,10 @@ export class DataService {
   }
 
   // delete event
-  async deleteEvent(eventId: string): Promise<void> {
-    return ApiService.i.delete("/event/:id", { path: { id: eventId } });
+  async deleteEvent(project: string, event: string): Promise<void> {
+    return ApiService.i.delete("/project/:project/event/:event", {
+      path: { project, event },
+    });
   }
 
   // ================== MEMBERS ==================

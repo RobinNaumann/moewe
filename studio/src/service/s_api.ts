@@ -10,10 +10,10 @@ export class ApiService {
   public static i: ApiService = new ApiService();
   private constructor() {}
 
-  public apiURL =  //"https://moewe.robbb.in/api";
-  `${location.protocol}//${
+  public apiURL = "https://open.moewe.app/api";
+  /*`${location.protocol}//${
     location.port === "5173" ? "localhost:3183" : location.host
-  }/api`;
+  }/api`;*/
 
   private async _fetch(
     p: string,
@@ -38,7 +38,13 @@ export class ApiService {
         headers: { "Content-Type": "application/json" },
         body: body ? JSON.stringify(body) : undefined,
       });
-      if (response.ok) return await response.json();
+      if (response.ok) {
+        try {
+          return await response.json();
+        } catch (e) {
+          return null;
+        }
+      }
       let data = null;
       try {
         data = await response.clone().json();

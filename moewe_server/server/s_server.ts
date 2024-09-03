@@ -10,7 +10,7 @@ export function run() {
     appInfo.server.port,
     {
       info: {
-        title: appInfo.name,
+        title: `${appInfo.name ?? "mœwe"} API`,
         version: appInfo.version,
         description: appInfo.description,
       },

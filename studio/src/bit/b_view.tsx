@@ -1,7 +1,11 @@
-import { ApiFilters } from "../shared";
+import { ApiFilterItem, ApiFilters } from "../shared";
 import { showToast } from "../util";
 import { CtrlBit, WorkerControl } from "../util/bit/ctrl_bit";
 import { ViewConfig } from "../util/viz/v_viz";
+
+function _7daysAgo() {
+  return Date.now() - 7 * 24 * 60 * 60 * 1000;
+}
 
 type Inputs = {
   config: ViewConfig | null;
@@ -15,7 +19,7 @@ export const initial: ViewConfig = {
       local: false,
       field: "meta.created_at",
       operator: ">",
-      value: Date.now() - 30 * 24 * 60 * 60 * 1000,
+      value: _7daysAgo(),
     },
   ],
   views: {
@@ -28,9 +32,9 @@ export const initial: ViewConfig = {
     event: {
       vizs: [
         { id: "overview_graph", options: {} },
-        { id: "chartTime", options: {} },
-        { id: "keystats" },
         { id: "map" },
+        { id: "keystats" },
+        { id: "sessions" },
       ],
     },
   },
@@ -42,7 +46,25 @@ function _sameId(v: { id: string }, id: string) {
 
 class Ctrl extends WorkerControl<Inputs, Data> {
   async worker(): Promise<ViewConfig> {
-    return Array.isArray(this.p.config ?? 0) ? this.p.config : initial;
+    let c: ViewConfig = initial;
+    try {
+      c = {
+        ...this.p.config,
+        filter: [...(this.p.config?.filter ?? initial.filter)],
+        views: { ...(this.p.config?.views ?? initial.views) },
+      };
+    } catch (e) {}
+
+    if (!c.filter.find((f: ApiFilterItem) => f.field === "meta.created_at")) {
+      c.filter.push({
+        local: false,
+        field: "meta.created_at",
+        operator: ">",
+        value: _7daysAgo(),
+      });
+    }
+
+    return c;
   }
 
   private _emit(d: any) {

@@ -42,38 +42,44 @@ function _LiveView() {
     return () => clearInterval(id);
   }, [evSig]);
 
-  return evSig.onData((d) => (
-    <button
-      class={d.live && liveSig.value ? "action" : "integrated"}
-      onClick={() => {
-        evSig.ctrl.toggleLive();
-      }}
-    >
-      {!d.live ? "paused" : liveSig.value ? "live" : "outdated"}
-      {d.live && liveSig.value && <div class="live-dot" />}
-    </button>
-  ));
+  return evSig.map({
+    onData: (d) => (
+      <button
+        class={d.live && liveSig.value ? "action" : "integrated"}
+        onClick={() => {
+          evSig.ctrl.toggleLive();
+        }}
+      >
+        {!d.live ? "paused" : liveSig.value ? "live" : "outdated"}
+        {d.live && liveSig.value && <div class="live-dot" />}
+      </button>
+    ),
+    onLoading: () => null,
+  });
 }
 
 function _FilterView({}) {
   const viewBit = ViewBit.use();
   const openSig = useSignal(false);
-  return viewBit.onData((d) => (
-    <div class="row flex-1">
-      <button class="action" onClick={() => (openSig.value = true)}>
-        <Settings2 />
-        Filter
-      </button>
-      <div key={d.filter}>
-        <_FilterDialog
-          open={openSig.value}
-          onClose={() => (openSig.value = false)}
-          filters={[...d.filter]}
-        />
+  return viewBit.map({
+    onData: (d) => (
+      <div class="row flex-1">
+        <button class="action" onClick={() => (openSig.value = true)}>
+          <Settings2 />
+          Filter
+        </button>
+        <div key={d.filter}>
+          <_FilterDialog
+            open={openSig.value}
+            onClose={() => (openSig.value = false)}
+            filters={[...d.filter]}
+          />
+        </div>
+        <_Breadcrumbs filter={d.filter} />
       </div>
-      <_Breadcrumbs filter={d.filter} />
-    </div>
-  ));
+    ),
+    onLoading: () => null,
+  });
 }
 
 function _Breadcrumbs({ filter }: { filter: ApiFilters }) {

@@ -27,7 +27,6 @@ function _Viz({
   const events: ApiEvent[] = c.events;
   // Calculate the time range of events
   const range = findTimeRange(c.filter);
-  console.log(range);
 
   // Calculate the time interval for each bucket
   const interval = ((range.end ?? Date.now()) - range.start) / count;
@@ -49,12 +48,18 @@ function _Viz({
 
   return (
     <div class="column cross-stretch">
-      <_ColumnDiagram buckets={buckets} />
+      <_ColumnDiagram buckets={buckets} untilNow={!range.end} />
     </div>
   );
 }
 
-function _ColumnDiagram({ buckets }: { buckets: ApiEvent[][] }) {
+function _ColumnDiagram({
+  buckets,
+  untilNow,
+}: {
+  buckets: ApiEvent[][];
+  untilNow: boolean;
+}) {
   const max = Math.max(...buckets.map((bucket) => bucket.length));
   return (
     <div
@@ -62,7 +67,11 @@ function _ColumnDiagram({ buckets }: { buckets: ApiEvent[][] }) {
       style="height: 110px; gap: 3px;"
     >
       {buckets.map((bucket, i) => (
-        <_Column max={max} bucket={bucket} live={i === buckets.length - 1} />
+        <_Column
+          max={max}
+          bucket={bucket}
+          live={untilNow && i === buckets.length - 1}
+        />
       ))}
     </div>
   );

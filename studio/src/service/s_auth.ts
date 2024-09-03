@@ -24,7 +24,9 @@ export class AuthService {
 
   async logout() {
     // delete the token http-only cookie:
-    await ApiService.i.get("/auth/logout");
+    try {
+      await ApiService.i.get("/auth/logout");
+    } catch (e) {}
   }
 
   async login({

@@ -549,3 +549,14 @@ select {
   height: 3rem;
   min-width: 3rem;
 }
+
+.row-scroll {
+  @extend .row;
+  flex-grow: 1;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+}
+
+.row-scroll > * {
+  flex-shrink: 0;
+}

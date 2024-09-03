@@ -4,7 +4,7 @@ import { Spinner } from "..";
 import { AuthBit } from "../bit/b_auth";
 import { ElbeDialog } from "../elbe/components";
 import { DataService, Project } from "../service/s_data";
-import { go, showToast } from "../util";
+import { go, showDate, showToast } from "../util";
 import { SBit } from "../util/bit/sbit";
 import { HeaderView } from "./v_header";
 
@@ -62,7 +62,9 @@ function ProjectSnippet({
           <span class="header-5">{project.name}</span>
           <span>{project.about}</span>
         </div>
-        <span class="text-s">{project.id}</span>
+        <span class="text-s">
+          {showDate(Number.parseInt(`${project.created_at}`))}
+        </span>
       </div>
     </div>
   );

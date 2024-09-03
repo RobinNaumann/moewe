@@ -55,7 +55,6 @@ export class FilteredService {
       }
     }
 
-    console.log("querying", params);
     return DataService.i.listEvent(projectId, type, 1, 1000000, params);
   }
 }

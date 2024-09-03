@@ -1,5 +1,5 @@
-import { imsg } from "../util";
 import { appInfo } from "../app";
+import { imsg } from "../util";
 
 export function FooterView() {
   return (
@@ -11,7 +11,7 @@ export function FooterView() {
       &nbsp;
       <a href="https://robbb.in">Robin</a>.<br />v{appInfo.version}{" "}
       <a href={appInfo.repo}>source code</a>
-      &nbsp;<a href="https://robbb.in/impressum.html">imprint/impressum</a>
+      &nbsp;<a href="https://moewe.app">imprint/impressum</a>
       {/* <div class="i" style="margin-top: 10px">
         developed in{" "}
         <img

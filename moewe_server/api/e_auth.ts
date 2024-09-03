@@ -92,6 +92,6 @@ export const routesAuth: DonauRoute<AuthUser>[] = [
 
   route("/logout", {
     description: "Logout the current user",
-    handler: (_, res) => res.clearCookie("token", { httpOnly: true }),
+    handler: (_, res) => res.clearCookie("token", { httpOnly: true }).end(),
   }),
 ];

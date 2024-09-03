@@ -1,5 +1,7 @@
 import { chartTimeViz } from "../../pages/project/analysis/viz/vv_chart_time";
+import { dimensionsViz } from "../../pages/project/analysis/viz/vv_dimensions";
 import { eventListViz } from "../../pages/project/analysis/viz/vv_event_list";
+import { exportViz } from "../../pages/project/analysis/viz/vv_export";
 import { overviewGraphViz } from "../../pages/project/analysis/viz/vv_graph";
 import {
   keysViz,
@@ -21,4 +23,6 @@ export const vizs: Visualization<any>[] = [
   platformsViz,
   sessionsViz,
   overviewGraphViz,
+  dimensionsViz,
+  exportViz,
 ];

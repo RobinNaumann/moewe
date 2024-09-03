@@ -7,6 +7,7 @@ import {
   Settings,
   TabletSmartphone,
 } from "lucide-react";
+import React from "preact/compat";
 import { AppsBit } from "../../../bit/b_apps";
 import { EventsBit } from "../../../bit/b_events";
 import { ProjectBit } from "../../../bit/b_project";
@@ -77,23 +78,41 @@ export const projectViews: { [key: string]: ProjectView } = {
 function ProjectViewBuilder({ type }: { type: string }) {
   const project = ProjectBit.use();
   const vBit = ViewBit.use();
+
   return project.map({
-    onData: (p) => (
-      <AppsBit.Provide projectId={p.id}>
-        <div class="column cross-stretch flex-1 padded">
-          <NoAppEntry />
-          {vBit.map({
-            onData: (v) => (
-              <EventsBit.Provide project={p.id} type={type} filter={v.filter}>
-                <div class="column cross-stretch flex-1">
-                  <FilterView />
-                  <VisView view={type} />
-                </div>
-              </EventsBit.Provide>
-            ),
-          })}
-        </div>
-      </AppsBit.Provide>
-    ),
+    onData: (p) =>
+      vBit.map({
+        onData: (v) => (
+          <_MemProjectView projectId={p.id} filter={v.filter} type={type} />
+        ),
+      }),
   });
+}
+
+const _MemProjectView = React.memo(
+  _ProjectView,
+  (prev, next) =>
+    prev.projectId === next.projectId && prev.filter === next.filter
+);
+
+function _ProjectView({
+  projectId,
+  filter,
+  type,
+}: {
+  projectId: string;
+  filter: any;
+  type: string;
+}) {
+  return (
+    <AppsBit.Provide projectId={projectId}>
+      <EventsBit.Provide project={projectId} type={type} filter={filter}>
+        <div class="column cross-stretch flex-1" style="margin: 0 1rem">
+          <NoAppEntry />
+          <FilterView />
+          <VisView view={type} />
+        </div>
+      </EventsBit.Provide>
+    </AppsBit.Provide>
+  );
 }

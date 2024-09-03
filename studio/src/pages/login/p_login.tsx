@@ -1,4 +1,5 @@
 import { TriangleAlert } from "lucide-react";
+import { route } from "preact-router";
 import { useState } from "preact/hooks";
 import { Spinner } from "../..";
 import { AuthBit } from "../../bit/b_auth";
@@ -18,9 +19,7 @@ export function LoginView({}) {
         onLoading: () => <Spinner />,
         onData: (auth) =>
           auth ? (
-            <div style="min-height: 20rem" class="padded centered">
-              you're already logged in
-            </div>
+            <_LoggedInView />
           ) : (
             <div
               class="base-limited column cross-stretch-fill"
@@ -64,6 +63,16 @@ export function LoginView({}) {
             </div>
           ),
       })}
+    </div>
+  );
+}
+
+function _LoggedInView() {
+  const redirect = new URLSearchParams(window.location.search).get("redirect");
+  route(redirect ?? "/");
+  return (
+    <div style="min-height: 20rem" class="padded centered">
+      you're already logged in
     </div>
   );
 }

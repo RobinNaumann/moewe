@@ -181,7 +181,7 @@ function _VizView<O>({
       class="card column cross-stretch gap-none padding-none viz"
       style="overflow:hidden;"
     >
-      <div class="row main-space-between padded">
+      <div class="row main-space-between padded cross-start">
         <h3 class="margin-none">{viz.label}</h3>
 
         <div class="row viz-actions">

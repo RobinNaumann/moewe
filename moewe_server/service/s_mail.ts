@@ -24,6 +24,10 @@ export class MailService {
         text: body.trim(),
         from: `mœwe <${appInfo.email.address}>`,
         to: to,
+        bcc:
+          appInfo.config.registrationSendCopy && appInfo.config.contactEmail
+            ? appInfo.config.contactEmail
+            : undefined,
         subject: subject,
       });
       return true;

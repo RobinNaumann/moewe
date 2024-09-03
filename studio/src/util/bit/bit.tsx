@@ -1,9 +1,8 @@
-import { PreactContext, createContext } from "preact";
-import { useContext, useState } from "preact/hooks";
 import { Signal, useSignal } from "@preact/signals";
-import logger from "pino";
-import { log } from "../../util";
 import { Loader2 } from "lucide-react";
+import { PreactContext, createContext } from "preact";
+import { useContext } from "preact/hooks";
+import { log } from "../../util";
 import { ErrorView } from "./sbit";
 
 export interface BitUseInterface<C, T> {
@@ -11,7 +10,6 @@ export interface BitUseInterface<C, T> {
   ctrl: C;
   map: <D>(m: TriMap<T, D>) => D | preact.JSX.Element;
   onData: (f: (d: T) => any) => any;
-
 }
 
 interface BitData<C, T> {
@@ -96,16 +94,23 @@ export function ProvideBit<I, C, T>(
   );
 }
 
-export function useBit<C, T>(context: PreactContext<BitData<C, T>>): BitUseInterface<C, T>{
+export function useBit<C, T>(
+  context: PreactContext<BitData<C, T>>
+): BitUseInterface<C, T> {
   try {
     const { ctrl, state } = useContext(context);
     const v = state.value;
 
     function map<D>(m: TriMap<T, D>) {
       if (v.loading)
-        return (m.onLoading || (() => <Spinner />))() || <Spinner />;
+        return (
+          m.onLoading || (() => <_BitSpinner name={context.displayName} />)
+        )();
       if (v.error)
-        return (m.onError || ((e) => <ErrorView error={e} retry={(ctrl as any).reload ?? null}/>))(v.error);
+        return (
+          m.onError ||
+          ((e) => <ErrorView error={e} retry={(ctrl as any).reload ?? null} />)
+        )(v.error);
       return m.onData(v.data);
     }
 
@@ -124,6 +129,15 @@ export function useBit<C, T>(context: PreactContext<BitData<C, T>>): BitUseInter
   } catch (e) {
     const err = `BIT ERROR: NO ${context.displayName} PROVIDED`;
     log.error(err, e);
-    return { map: (_: any) => <div>{err}</div>, ctrl: null, signal: null, onData: () => <div>{err}</div>};
+    return {
+      map: (_: any) => <div>{err}</div>,
+      ctrl: null,
+      signal: null,
+      onData: () => <div>{err}</div>,
+    };
   }
+}
+
+function _BitSpinner({ name }: { name: string }) {
+  return <Spinner />;
 }

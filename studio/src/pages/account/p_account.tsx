@@ -1,11 +1,10 @@
-import { KeyRound, LogOut, Trash2, Wrench } from "lucide-react";
-import { HeaderView } from "../v_header";
+import { useSignal } from "@preact/signals";
+import { KeyRound, LogOut, Trash2 } from "lucide-react";
 import { AccountBit } from "../../bit/b_account";
-import { Field, go, showConfirmDialog, showToast } from "../../util";
 import { AuthBit } from "../../bit/b_auth";
 import { ElbeDialog } from "../../elbe/components";
-import { useSignal } from "@preact/signals";
-import { ApiAccount } from "../../service/s_data";
+import { Field, go, showConfirmDialog, showToast } from "../../util";
+import { HeaderView } from "../v_header";
 
 export const userPrivileges = {
   unknown: {
@@ -72,24 +71,24 @@ function _View() {
           </div>
           <Field label="Name" value={d.name} onSubmit={() => {}} />
           <div class="row-resp main-stretch gap">
-          <SetPasswordDialogBtn withText={true}/>
-          <button
-            class="error minor borderless flex-1 row"
-            style="background: transparent"
-            onClick={_deleteAccount}
-          >
-            <Trash2 />
-            delete account
-          </button>
+            <SetPasswordDialogBtn withText={true} />
+            <button
+              class="error minor borderless flex-1 row"
+              style="background: transparent"
+              onClick={_deleteAccount}
+            >
+              <Trash2 />
+              delete account
+            </button>
           </div>
         </div>
-        <AdminActions />
       </div>
       <div class="flex-1 column cross-stretch-fill">
         <button class="loud minor" onClick={() => authBit.ctrl.logout()}>
           <LogOut />
           log out
         </button>
+        {d.privilege >= userPrivileges.admin.id && <AdminActions />}
       </div>
     </div>
   ));
@@ -120,13 +119,23 @@ export function PrivilegeChip({ p: privilege }: { p: number }) {
 
 function SetPasswordDialogBtnBit({}) {
   const accBit = AccountBit.use();
-  return <SetPasswordDialogBtn withText={true} onSet={async (pw) => {
-    await accBit.ctrl.setPassword(pw);
-  }} />;
+  return (
+    <SetPasswordDialogBtn
+      withText={true}
+      onSet={async (pw) => {
+        await accBit.ctrl.setPassword(pw);
+      }}
+    />
+  );
 }
 
-export function SetPasswordDialogBtn({withText = false, onSet}: {withText?: boolean, onSet?: (pw:string) => Promise<void>}) {
-  
+export function SetPasswordDialogBtn({
+  withText = false,
+  onSet,
+}: {
+  withText?: boolean;
+  onSet?: (pw: string) => Promise<void>;
+}) {
   const pwData = useSignal(null);
 
   async function _setPassword() {
@@ -135,19 +144,21 @@ export function SetPasswordDialogBtn({withText = false, onSet}: {withText?: bool
       return;
     }
 
-    try{
+    try {
       await onSet(pwData.value.password);
       showToast("password updated");
       pwData.value = null;
-    }
-    catch(e){
-      console.warn("error while setting password",e);
+    } catch (e) {
+      console.warn("error while setting password", e);
       showToast("failed to set password");
     }
   }
 
   return (
-    <button class={"action " + (withText ? "flex-1 row" : "")} onClick={() => (pwData.value = {})}>
+    <button
+      class={"action " + (withText ? "flex-1 row" : "")}
+      onClick={() => (pwData.value = {})}
+    >
       <KeyRound />
       {withText ? "update password" : null}
       <ElbeDialog
@@ -188,7 +199,8 @@ function AdminActions() {
   return (
     <div class="column cross-stretch">
       <button class="action" onClick={go("/manage")}>
-        admin tools</button>
+        admin tools
+      </button>
     </div>
   );
 }

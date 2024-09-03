@@ -32,17 +32,17 @@ function _Router({}) {
 class App extends Component {
   async componentDidMount() {
     // Check if user is authenticated here
-    // You can call the guard method here
     let user = null;
     try {
       user = await AuthService.i.get();
+      console.log("User is authenticated", user);
     } catch (e) {}
     this.guard(window.location.pathname, user ?? null);
   }
 
-  // some method that returns a promise
   guard(url: string, user: AuthState) {
     if (user) return;
+    console.log("Redirecting to login");
     route("/login", true);
   }
 
@@ -89,7 +89,8 @@ function ProtectedRoute(props: any) {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      route("login", true);
+      const currentPath = encodeURIComponent(window.location.pathname);
+      route(`/login?redirect=${currentPath}`, true);
     }
   }, [isLoggedIn]);
 

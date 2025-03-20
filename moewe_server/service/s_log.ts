@@ -78,6 +78,8 @@ export class LogService {
       meta: {
         platform: event.meta?.platform,
         device: event.meta?.device,
+        version: event.meta?.version,
+        buildnr: event.meta?.buildnr,
         session: sessionHash,
         ...location,
       },

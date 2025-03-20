@@ -2,6 +2,7 @@ import { CorsOptions } from "cors";
 import { logger } from "donau";
 import { AccountService } from "./service/s_account";
 import { DbService } from "./service/s_db";
+import { sharedAppInfo } from "./shared";
 import { maybe } from "./tools/util";
 
 const corsOptions: CorsOptions = {
@@ -47,8 +48,7 @@ function _envInt(name: string, fallback?: number): number {
 }
 
 export const appInfo = {
-  name: "mœwe",
-  version: "0.2.4",
+  ...sharedAppInfo,
   description: "Server for the moewe app",
   server: {
     cors: corsOptions,
@@ -73,8 +73,8 @@ export const appInfo = {
     password: _envString("EMAIL_PASSWORD"),
   },
   config: {
-    allowRegistration: process.env.ALLOW_USER_SIGNUP === "true" || false,
-    registrationSendCopy: _envBool("REGISTRATION_SEND_COPY", false),
+    signUpAllow: _envBool("SIGNUP_ALLOW", true),
+    signUpSendCopy: _envBool("SIGNUP_SEND_COPY", false),
     eventMaxSize: _envInt("EVENT_MAX_SIZE", 1000),
     projectMaxSize: _envInt("PROJECT_MAX_SIZE", 1000 * 1000 * 50),
     sessionTTL: _envInt("SESSION_TTL", 1000 * 60 * 60 * 1),

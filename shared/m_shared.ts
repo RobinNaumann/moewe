@@ -29,6 +29,7 @@ interface _ApiEvent<T> {
       platform: string | null;
       device: string | null;
       version: string | null;
+      buildnr: string | null;
     };
     location: {
       city: string | null;

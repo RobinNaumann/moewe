@@ -25,7 +25,7 @@ export class MailService {
         from: `mœwe <${appInfo.email.address}>`,
         to: to,
         bcc:
-          appInfo.config.registrationSendCopy && appInfo.config.contactEmail
+          appInfo.config.signUpSendCopy && appInfo.config.contactEmail
             ? appInfo.config.contactEmail
             : undefined,
         subject: subject,

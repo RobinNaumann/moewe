@@ -11,9 +11,8 @@ export class ApiService {
   private constructor() {}
 
   public apiURL = "https://open.moewe.app/api";
-  /*`${location.protocol}//${
-    location.port === "5173" ? "localhost:3183" : location.host
-  }/api`;*/
+
+  //`${location.protocol}//${location.port === "5173" ? "localhost:3183" : location.host}/api`;
 
   private async _fetch(
     p: string,

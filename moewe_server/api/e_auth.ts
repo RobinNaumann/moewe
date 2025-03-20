@@ -4,7 +4,7 @@ import { Account, accountType } from "../service/model/m_account";
 import { AccountService } from "../service/s_account";
 import { AuthService, AuthUser } from "../service/s_auth";
 
-const createRoutes: DonauRoute<AuthUser>[] = appInfo.config.allowRegistration
+const createRoutes: DonauRoute<AuthUser>[] = appInfo.config.signUpAllow
   ? [
       route("/signup", {
         method: "post",

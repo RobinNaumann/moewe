@@ -44,8 +44,6 @@ function _Viz({
     buckets.push(bucket);
   }
 
-  console.log(buckets.reduce((acc, bucket) => acc + bucket.length, 0));
-
   return (
     <div class="column cross-stretch">
       <_ColumnDiagram buckets={buckets} untilNow={!range.end} />

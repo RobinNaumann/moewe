@@ -451,16 +451,18 @@ input[type="range"] {
   cursor: pointer;
   width: 15rem;
 
-  &::-webkit-slider-runnable-track,
-  &::-moz-range-track {
+  &::-webkit-slider-runnable-track
+  //&::-moz-range-track 
+  {
     @extend .secondary;
     border-radius: 100px;
     border: none;
     height: 0.5rem;
   }
 
-  &::-webkit-slider-thumb,
-  &::-moz-range-thumb {
+  &::-webkit-slider-thumb
+  //&::-moz-range-thumb
+   {
     @extend .accent;
     border: none;
     -webkit-appearance: none; /* Override default look */

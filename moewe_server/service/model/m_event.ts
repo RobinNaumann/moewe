@@ -9,6 +9,8 @@ export interface DbEvent {
   meta: {
     platform: string;
     device: string;
+    version: string;
+    buildnr: string;
     session: string;
     city: string;
     country: string;
@@ -32,7 +34,8 @@ export function parseEvent(e: DbEvent): ApiEvent {
       device: {
         platform: e.meta?.platform,
         device: e.meta?.device,
-        version: "????",
+        version: e.meta?.version,
+        buildnr: e.meta?.buildnr,
       },
       location: {
         city: e.meta?.city,
@@ -62,4 +65,6 @@ export const pushEventType = {
 export interface PushMeta {
   platform: string;
   device: string;
+  version: string;
+  buildnr: string;
 }

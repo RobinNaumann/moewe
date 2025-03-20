@@ -11,6 +11,8 @@ import { keystatsViz } from "../../pages/project/analysis/viz/vv_keystats";
 import { loglistViz } from "../../pages/project/analysis/viz/vv_log_list";
 import { mapViz } from "../../pages/project/analysis/viz/vv_map";
 import { sessionsViz } from "../../pages/project/analysis/viz/vv_sessions";
+import { sessionsGraphViz } from "../../pages/project/analysis/viz/vv_sessions_graph";
+import { valuesViz } from "../../pages/project/analysis/viz/vv_values";
 import { Visualization } from "./v_viz";
 
 export const vizs: Visualization<any>[] = [
@@ -23,6 +25,8 @@ export const vizs: Visualization<any>[] = [
   platformsViz,
   sessionsViz,
   overviewGraphViz,
+  sessionsGraphViz,
   dimensionsViz,
   exportViz,
+  valuesViz,
 ];

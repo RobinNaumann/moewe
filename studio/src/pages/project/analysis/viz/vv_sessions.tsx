@@ -20,6 +20,10 @@ import { DataDialogButton } from "./vv_event_list";
 
 const defaultOptions = {};
 
+function reversed<T>(arr: T[]): T[] {
+  return arr.slice().reverse();
+}
+
 export const sessionsViz: Visualization<typeof defaultOptions> = {
   id: "sessions",
   types: ["event"],
@@ -32,7 +36,7 @@ export const sessionsViz: Visualization<typeof defaultOptions> = {
 
 function _Viz({ c }: { c: VizContext<ApiEvent, typeof defaultOptions> }) {
   const selectSig = useSignal<EventGroup>(null);
-  const groups = groupBy(c.events, (e) => e.meta.session);
+  const groups = reversed(groupBy(c.events, (e) => e.meta.session));
 
   return selectSig.value ? (
     <div class="column cross-stretch">

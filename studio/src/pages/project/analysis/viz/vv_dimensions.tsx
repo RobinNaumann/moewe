@@ -35,7 +35,7 @@ function _setFilter(c: VizContext<ApiEvent, any>, key: string) {
 export const dimensionsViz: Visualization<typeof defaultOptions> = {
   id: "dimensions",
   types: "all",
-  label: "Dimensions",
+  label: "Filter Dimensions",
   icon: <Move3D />,
   options: Object.keys(defaultOptions).map((key) => ({
     key,

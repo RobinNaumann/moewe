@@ -19,5 +19,5 @@
       "bun-types" // add Bun global
     ]
   },
-  "include": ["**/*", "../shared/m_shared.ts"]
+  "include": ["**/*", "../shared/m_shared.ts", "../shared/app_info.ts"]
 }
